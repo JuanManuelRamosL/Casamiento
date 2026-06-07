@@ -15,17 +15,17 @@ export function HeroSection() {
     <section className="relative min-h-svh flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0 z-0">
         <Image
-          src="/images/hero-wedding.jpg"
+          src="/images/portada.jpeg"
           alt="Escenario de boda elegante con decoraciones florales"
           fill
-          className="object-cover"
+          className="object-cover object-[center_85%] md:object-[center_85%]"
           priority
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-foreground/30" />
       </div>
 
-      <div className="relative z-10 text-center px-6">
+      <div className="relative z-10 text-center px-6 -translate-y-[59px] md:translate-y-0">
         <p
           className={`text-cream/80 text-sm tracking-[0.35em] uppercase mb-6 transition-all duration-1000 delay-300 ${
             loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
