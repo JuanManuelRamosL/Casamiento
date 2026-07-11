@@ -4,16 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 /**
- * Escena de apertura: el video del sobre (public/sobre-alpha.mp4) se reproduce
- * sincronizado con el scroll, recortado en vivo con WebGL (formato "stacked":
- * color arriba, mascara alfa abajo), sobre la imagen del hero que pasa de
- * desenfocada a nitida. Al abrirse, aparecen los nombres.
+ * Escena de apertura: el video del sobre (public/sobre-alpha.mp4, formato
+ * "stacked": color arriba, mascara alfa abajo) se scrubbea con el scroll y se
+ * recorta en vivo con WebGL, sobre la imagen del hero que pasa de desenfocada a
+ * nitida. Un poster (sobre-poster.png) se ve al instante hasta que el video
+ * decodifica su primer frame (mobile carga el video en diferido).
  *
- * Fluidez:
- *  - El fondo hace crossfade entre una capa nitida y una pre-desenfocada
- *    (animar opacidad es barato; animar el radio de blur no lo es).
- *  - El video se scrubbea por eventos: un solo seek en vuelo, cuantizado a
- *    frames, dibujando cuando el frame realmente esta listo.
+ * Rendimiento: los estilos guiados por scroll se aplican de forma IMPERATIVA
+ * por refs (sin re-render de React en cada frame) para que sea fluido en mobile.
  */
 
 const VERT = `
@@ -31,7 +29,7 @@ varying vec2 v_uv;
 void main() {
   vec3 col = texture2D(u_tex, vec2(v_uv.x, v_uv.y * 0.5)).rgb;        // mitad superior: color
   float a = texture2D(u_tex, vec2(v_uv.x, v_uv.y * 0.5 + 0.5)).r;    // mitad inferior: mascara
-  a = smoothstep(0.15, 0.45, a); // endurece: sello opaco y bordes firmes (sin halo)
+  a = smoothstep(0.15, 0.45, a); // sello opaco y bordes firmes (sin halo)
   gl_FragColor = vec4(col * a, a); // premultiplicado
 }`;
 
@@ -44,18 +42,27 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
   return s;
 }
 
+const clamp = (n: number) => Math.min(Math.max(n, 0), 1);
+
 export function EnvelopeIntro() {
-  const [progress, setProgress] = useState(0);
   const [ready, setReady] = useState(false); // primer frame del sobre ya dibujado
+
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef(0);
   const seekRef = useRef<((p: number) => void) | null>(null);
 
-  const clamp = (n: number) => Math.min(Math.max(n, 0), 1);
+  // refs de los elementos con estilos guiados por scroll (update imperativo)
+  const bgWrapRef = useRef<HTMLDivElement>(null);
+  const blurRef = useRef<HTMLDivElement>(null);
+  const darkRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const envRef = useRef<HTMLDivElement>(null);
+  const hintRef = useRef<HTMLDivElement>(null);
+  const chevRef = useRef<HTMLDivElement>(null);
 
-  // ----- WebGL compositor + scrubbing por eventos -----
+  // ----- WebGL compositor + scrubbing del video -----
   useEffect(() => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -115,8 +122,7 @@ export function EnvelopeIntro() {
       }
     };
 
-    // ---- scrubbing: un solo seek en vuelo ----
-    const useRVFC = "requestVideoFrameCallback" in HTMLVideoElement.prototype;
+    // ---- scrubbing: un solo seek en vuelo, cuantizado a los frames reales ----
     let seeking = false;
     let pendingKey = -1;
     let lastKey = -1;
@@ -139,12 +145,10 @@ export function EnvelopeIntro() {
       lastKey = k;
       seeking = true;
       const dur = video.duration || 1.33;
-      // (k + 0.5)/FPS cae dentro del frame k -> selecciona el frame real exacto
       video.currentTime = Math.min((k + 0.5) / FPS, dur - 0.001);
     };
     video.addEventListener("seeked", afterSeek);
 
-    // cuantiza a los frames reales: solo pide un seek cuando el frame cambia
     seekRef.current = (p: number) => {
       const dur = video.duration || 1.33;
       const nFrames = Math.max(1, Math.round(dur * FPS));
@@ -152,25 +156,15 @@ export function EnvelopeIntro() {
       goToKey(Math.round(vp * (nFrames - 1)));
     };
 
-    // loop de dibujo: cada frame presentado por el video (capta la decodificacion
-    // diferida de mobile y refresca el scrubbing sin costo cuando esta estatico)
+    // dibuja cada frame presentado (capta la decodificacion diferida de mobile;
+    // idle cuando el video esta pausado y estatico)
+    const useRVFC = "requestVideoFrameCallback" in HTMLVideoElement.prototype;
     let rvfcId = 0;
     const onFrame = () => {
       drawGL();
       if (useRVFC) rvfcId = video.requestVideoFrameCallback(onFrame);
     };
     if (useRVFC) rvfcId = video.requestVideoFrameCallback(onFrame);
-
-    // warmup: reintenta dibujar el frame inicial hasta ~8s (mobile carga diferido)
-    let rafId = 0;
-    let tries = 0;
-    const warm = () => {
-      if (firstDone || tries++ > 480) return;
-      seekRef.current?.(progressRef.current);
-      drawGL();
-      rafId = requestAnimationFrame(warm);
-    };
-    rafId = requestAnimationFrame(warm);
 
     const onCanPlay = () => {
       video.pause();
@@ -192,15 +186,36 @@ export function EnvelopeIntro() {
       video.removeEventListener("seeked", afterSeek);
       video.removeEventListener("loadeddata", onCanPlay);
       video.removeEventListener("canplay", onCanPlay);
-      if (rafId) cancelAnimationFrame(rafId);
       if (useRVFC && rvfcId && video.cancelVideoFrameCallback) {
         video.cancelVideoFrameCallback(rvfcId);
       }
     };
   }, []);
 
-  // ----- scroll -----
+  // ----- scroll (estilos imperativos, sin re-render de React) -----
   useEffect(() => {
+    const applyStyles = (p: number) => {
+      const fadeP = clamp((p - 0.75) / 0.25); // el sobre sube y se desvanece
+      const focusP = clamp(p / 0.82); // la imagen se enfoca
+      const textIn = clamp((p - 0.7) / 0.25); // aparecen los nombres
+
+      if (bgWrapRef.current)
+        bgWrapRef.current.style.transform = `scale(${1 + 0.08 * (1 - focusP)})`;
+      if (blurRef.current) blurRef.current.style.opacity = `${1 - focusP}`;
+      if (darkRef.current) darkRef.current.style.opacity = `${0.5 - 0.2 * focusP}`;
+      if (textRef.current) {
+        textRef.current.style.opacity = `${textIn}`;
+        textRef.current.style.transform = `translateY(${(1 - textIn) * 24}px)`;
+      }
+      if (envRef.current) {
+        envRef.current.style.opacity = `${1 - fadeP}`;
+        envRef.current.style.transform = `translateY(${-fadeP * 12}vh) scale(${1 + fadeP * 0.08})`;
+      }
+      if (hintRef.current)
+        hintRef.current.style.opacity = `${(1 - clamp(p / 0.12)) * (1 - fadeP)}`;
+      if (chevRef.current) chevRef.current.style.opacity = `${textIn}`;
+    };
+
     let raf = 0;
     const onScroll = () => {
       if (raf) return;
@@ -212,7 +227,7 @@ export function EnvelopeIntro() {
         const dist = section.offsetHeight - window.innerHeight;
         const p = dist > 0 ? clamp(-rect.top / dist) : 0;
         progressRef.current = p;
-        setProgress(p);
+        applyStyles(p);
         seekRef.current?.(p);
       });
     };
@@ -226,24 +241,15 @@ export function EnvelopeIntro() {
     };
   }, []);
 
-  // ----- fases (DOM) -----
-  const fadeP = clamp((progress - 0.75) / 0.25); // el sobre sube y se desvanece
-  const focusP = clamp(progress / 0.82); // la imagen se enfoca
-  const textIn = clamp((progress - 0.7) / 0.25); // aparecen los nombres
-
-  const bgScale = 1 + 0.08 * (1 - focusP);
-  const darkAlpha = 0.5 - 0.2 * focusP;
-  const sealHintOpacity = (1 - clamp(progress / 0.12)) * (1 - fadeP);
-
   return (
     <section ref={sectionRef} className="relative h-[240vh]">
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6">
-        {/* ===== Imagen de fondo: crossfade nitida <- desenfocada (fluido) ===== */}
+        {/* ===== Imagen de fondo: crossfade nitida <- desenfocada ===== */}
         <div
+          ref={bgWrapRef}
           className="absolute inset-0"
-          style={{ transform: `scale(${bgScale})`, willChange: "transform" }}
+          style={{ transform: "scale(1.08)", willChange: "transform" }}
         >
-          {/* capa nitida */}
           <div
             className="absolute inset-0"
             style={{
@@ -252,32 +258,30 @@ export function EnvelopeIntro() {
               backgroundPosition: "center 85%",
             }}
           />
-          {/* capa desenfocada (blur estatico, solo cambia su opacidad) */}
           <div
+            ref={blurRef}
             className="absolute inset-0"
             style={{
               backgroundImage: "url('/images/pelo.jpeg')",
               backgroundSize: "cover",
               backgroundPosition: "center 85%",
               filter: "blur(20px)",
-              opacity: 1 - focusP,
+              opacity: 1,
               willChange: "opacity",
             }}
           />
-          {/* oscurecido (opacidad animada -> compositor) */}
           <div
+            ref={darkRef}
             className="absolute inset-0"
-            style={{ backgroundColor: "rgb(30,25,20)", opacity: darkAlpha, willChange: "opacity" }}
+            style={{ backgroundColor: "rgb(30,25,20)", opacity: 0.5, willChange: "opacity" }}
           />
         </div>
 
-        {/* ===== Nombres del hero (aparecen al abrirse el sobre) ===== */}
+        {/* ===== Nombres del hero ===== */}
         <div
+          ref={textRef}
           className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center"
-          style={{
-            opacity: textIn,
-            transform: `translateY(${(1 - textIn) * 24}px)`,
-          }}
+          style={{ opacity: 0, transform: "translateY(24px)" }}
         >
           <p
             className="mb-6 text-sm uppercase tracking-[0.35em] text-cream/80"
@@ -306,16 +310,12 @@ export function EnvelopeIntro() {
 
         {/* ===== Video del sobre recortado (WebGL) ===== */}
         <div
+          ref={envRef}
           className="pointer-events-none relative z-20 w-[90%] max-w-[540px]"
-          style={{
-            opacity: 1 - fadeP,
-            transform: `translateY(${-fadeP * 12}vh) scale(${1 + fadeP * 0.08})`,
-            willChange: "transform, opacity",
-          }}
+          style={{ opacity: 1, transform: "translateY(0) scale(1)", willChange: "transform, opacity" }}
         >
           <canvas ref={canvasRef} width={744} height={678} className="block h-auto w-full" />
-          {/* poster del sobre cerrado: se ve al instante hasta que el video decodifica
-              su primer frame (mobile carga el video en diferido) */}
+          {/* poster del sobre cerrado: visible al instante hasta el primer frame real */}
           <img
             src="/sobre-poster.png"
             alt=""
@@ -338,8 +338,9 @@ export function EnvelopeIntro() {
 
         {/* Indicacion inicial */}
         <div
-          className="absolute bottom-8 left-1/2 z-30 -translate-x-1/2 text-center"
-          style={{ opacity: sealHintOpacity, pointerEvents: "none" }}
+          ref={hintRef}
+          className="pointer-events-none absolute bottom-8 left-1/2 z-30 -translate-x-1/2 text-center"
+          style={{ opacity: 1 }}
         >
           <p
             className="mb-2 text-[10px] uppercase tracking-[0.35em]"
@@ -352,8 +353,9 @@ export function EnvelopeIntro() {
 
         {/* Chevron del hero */}
         <div
-          className="absolute bottom-8 left-1/2 z-30 -translate-x-1/2"
-          style={{ opacity: textIn, pointerEvents: "none" }}
+          ref={chevRef}
+          className="pointer-events-none absolute bottom-8 left-1/2 z-30 -translate-x-1/2"
+          style={{ opacity: 0 }}
         >
           <ChevronDown className="h-6 w-6 animate-bounce text-cream/60" />
         </div>
