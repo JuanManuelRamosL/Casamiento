@@ -35,7 +35,7 @@ void main() {
   gl_FragColor = vec4(col * a, a); // premultiplicado
 }`;
 
-const STEPS = 90; // pasos de scrubbing a lo largo del scroll
+const FPS = 24; // el video del sobre es nativo 24fps (sin interpolacion)
 
 function compile(gl: WebGLRenderingContext, type: number, src: string) {
   const s = gl.createShader(type)!;
@@ -46,6 +46,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
 
 export function EnvelopeIntro() {
   const [progress, setProgress] = useState(0);
+  const [ready, setReady] = useState(false); // primer frame del sobre ya dibujado
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -94,9 +95,10 @@ export function EnvelopeIntro() {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
     let sized = false;
+    let firstDone = false;
     const drawGL = () => {
-      if (video.readyState < 2) return;
-      if (!sized && video.videoWidth) {
+      if (video.readyState < 2 || !video.videoWidth) return;
+      if (!sized) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight / 2;
         sized = true;
@@ -107,15 +109,19 @@ export function EnvelopeIntro() {
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
+      if (!firstDone) {
+        firstDone = true;
+        setReady(true); // ya hay un frame real: ocultar poster
+      }
     };
 
-    // ---- scrubbing: un solo seek en vuelo, dibuja cuando el frame esta listo ----
+    // ---- scrubbing: un solo seek en vuelo ----
     const useRVFC = "requestVideoFrameCallback" in HTMLVideoElement.prototype;
     let seeking = false;
     let pendingKey = -1;
     let lastKey = -1;
 
-    const complete = () => {
+    const afterSeek = () => {
       drawGL();
       seeking = false;
       if (pendingKey >= 0) {
@@ -132,36 +138,64 @@ export function EnvelopeIntro() {
       if (k === lastKey) return;
       lastKey = k;
       seeking = true;
-      const dur = video.duration || 1.2;
-      video.currentTime = Math.min((k / STEPS) * dur, dur - 0.001);
-      if (useRVFC) {
-        video.requestVideoFrameCallback(complete);
-      }
+      const dur = video.duration || 1.33;
+      // (k + 0.5)/FPS cae dentro del frame k -> selecciona el frame real exacto
+      video.currentTime = Math.min((k + 0.5) / FPS, dur - 0.001);
     };
-    if (!useRVFC) video.addEventListener("seeked", complete);
+    video.addEventListener("seeked", afterSeek);
 
+    // cuantiza a los frames reales: solo pide un seek cuando el frame cambia
     seekRef.current = (p: number) => {
+      const dur = video.duration || 1.33;
+      const nFrames = Math.max(1, Math.round(dur * FPS));
       const vp = clamp(p / 0.72); // abierto al 72% del scroll
-      goToKey(Math.round(vp * STEPS));
+      goToKey(Math.round(vp * (nFrames - 1)));
     };
 
-    // al cargar: pausar, resetear el estado del scrubber y posicionar en el
-    // frame correcto segun el scroll actual (frame 0 = cerrado en el tope)
-    const onReady = () => {
+    // loop de dibujo: cada frame presentado por el video (capta la decodificacion
+    // diferida de mobile y refresca el scrubbing sin costo cuando esta estatico)
+    let rvfcId = 0;
+    const onFrame = () => {
+      drawGL();
+      if (useRVFC) rvfcId = video.requestVideoFrameCallback(onFrame);
+    };
+    if (useRVFC) rvfcId = video.requestVideoFrameCallback(onFrame);
+
+    // warmup: reintenta dibujar el frame inicial hasta ~8s (mobile carga diferido)
+    let rafId = 0;
+    let tries = 0;
+    const warm = () => {
+      if (firstDone || tries++ > 480) return;
+      seekRef.current?.(progressRef.current);
+      drawGL();
+      rafId = requestAnimationFrame(warm);
+    };
+    rafId = requestAnimationFrame(warm);
+
+    const onCanPlay = () => {
       video.pause();
       seeking = false;
       pendingKey = -1;
       lastKey = -1;
       seekRef.current?.(progressRef.current);
+      drawGL();
     };
-    video.addEventListener("loadeddata", onReady);
-    // iOS: iniciar reproduccion una vez para poder dibujar frames en canvas
+    video.addEventListener("loadeddata", onCanPlay);
+    video.addEventListener("canplay", onCanPlay);
+
+    video.load(); // forzar carga (mobile no respeta preload)
+    // iOS/Android: iniciar reproduccion muteada una vez habilita dibujar frames
     video.play().then(() => video.pause()).catch(() => {});
 
     return () => {
       seekRef.current = null;
-      video.removeEventListener("seeked", complete);
-      video.removeEventListener("loadeddata", onReady);
+      video.removeEventListener("seeked", afterSeek);
+      video.removeEventListener("loadeddata", onCanPlay);
+      video.removeEventListener("canplay", onCanPlay);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (useRVFC && rvfcId && video.cancelVideoFrameCallback) {
+        video.cancelVideoFrameCallback(rvfcId);
+      }
     };
   }, []);
 
@@ -280,6 +314,15 @@ export function EnvelopeIntro() {
           }}
         >
           <canvas ref={canvasRef} width={744} height={678} className="block h-auto w-full" />
+          {/* poster del sobre cerrado: se ve al instante hasta que el video decodifica
+              su primer frame (mobile carga el video en diferido) */}
+          <img
+            src="/sobre-poster.png"
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute inset-0 h-full w-full"
+            style={{ opacity: ready ? 0 : 1, transition: "opacity 0.25s ease" }}
+          />
         </div>
 
         {/* video oculto que alimenta al compositor */}
