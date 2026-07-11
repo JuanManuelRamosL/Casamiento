@@ -1,6 +1,6 @@
 "use client";
 
-import { HeroSection } from "@/components/wedding/hero-section";
+import { EnvelopeIntro } from "@/components/wedding/envelope-intro";
 import { CountdownSection } from "@/components/wedding/countdown-section";
 import { OurStorySection } from "@/components/wedding/our-story-section";
 import { EventDetailsSection } from "@/components/wedding/event-details-section";
@@ -11,8 +11,8 @@ import { FooterSection } from "@/components/wedding/footer-section";
 
 export default function WeddingPage() {
   return (
-    <main className="overflow-x-hidden">
-      <HeroSection />
+    <main className="overflow-x-clip">
+      <EnvelopeIntro />
       <CountdownSection />
       {/* <OurStorySection /> */}
       <EventDetailsSection />
