@@ -122,7 +122,7 @@ function FlipUnit({ value, label }: { value?: number; label: string }) {
 }
 
 /* Clase reutilizable para los rótulos "eyebrow" en mayúsculas */
-const EYEBROW = "font-display text-[20px] tracking-widest2 text-dorado";
+const EYEBROW = "c";
 
 export default function Home() {
   const countdown = useCountdown(WEDDING_DATE);
@@ -143,7 +143,7 @@ export default function Home() {
   return (
     <main className="overflow-x-hidden bg-secundario">
       {/* ================= HERO ================= */}
-      <section className="hero-gradient grain-hero relative flex min-h-[100svh] flex-col items-center justify-center px-6 py-24 text-center">
+      <section className="hero-gradient fondo-prueba grain-hero relative flex min-h-[100svh] flex-col items-center justify-center px-6 py-24 text-center">
         <div className="relative z-[2] flex w-full max-w-2xl flex-col items-center">
           <p
             className="fade-in-up font-display text-[17px] tracking-widest2 text-dorado sm:text-[20px]"
@@ -174,7 +174,7 @@ export default function Home() {
             className="write-in font-script text-[54px] leading-[1] tracking-[0.02em] text-blanco sm:text-[80px]"
             style={{ animationDelay: "2.1s", animationDuration: "1.3s" }}
           >
-            Juan Manuel
+            Juanma
           </h1>
 
           <div className="mt-14 sm:mt-16">
@@ -190,7 +190,7 @@ export default function Home() {
 
       {/* ================= BIENVENIDA / CITA ================= */}
       <Reveal>
-        <section className="mx-auto max-w-2xl px-6 py-24 text-center sm:py-28">
+        <section className="mx-auto max-w-2xl px-6 py-24 text-center sm:py-28 sections">
           <p className="font-body text-[32px] italic leading-relaxed text-principal sm:text-[38px]">
             Nos casamos y queremos que seas parte de este día.
           </p>
@@ -202,8 +202,9 @@ export default function Home() {
 
       {/* ================= CUENTA REGRESIVA ================= */}
       <Reveal>
-        <section className="grain relative bg-principal px-6 py-20 text-center sm:py-24">
-          <p className={EYEBROW}>FALTA POCO</p>
+        <section className="prueba relative px-6 py-20 text-center sm:py-24">
+          {/* <p className={EYEBROW}>FALTA POCO</p> */}
+          <p className="texto-prueba">FALTA POCO</p>
           <div className="relative z-[2] mx-auto mt-8 grid max-w-md grid-cols-4 gap-3 sm:gap-6">
             <FlipUnit value={countdown?.days} label="Días" />
             <FlipUnit value={countdown?.hours} label="Horas" />
@@ -266,7 +267,7 @@ export default function Home() {
       </Reveal>
 
       {/* ================= ITINERARIO ================= */}
-      <Reveal>
+      {/* <Reveal>
         <section className="grain relative bg-principal px-6 py-24 sm:py-28">
           <div className="relative z-[2] mx-auto max-w-xl text-center">
             <p className={EYEBROW}>ITINERARIO</p>
@@ -302,7 +303,7 @@ export default function Home() {
             </div>
           </div>
         </section>
-      </Reveal>
+      </Reveal> */}
 
       {/* ================= CÓDIGO DE VESTIMENTA ================= */}
       <Reveal>
