@@ -1,48 +1,30 @@
-import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Lato } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
+import type { Metadata } from "next";
+import { Cinzel, Cormorant_Garamond, Alex_Brush } from "next/font/google";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
+const display = Cinzel({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-cormorant",
+  weight: ["400", "500", "600"],
+  variable: "--font-display",
 });
 
-const lato = Lato({
+const body = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["300", "400", "700"],
-  variable: "--font-lato",
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-body",
+});
+
+const script = Alex_Brush({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-script",
 });
 
 export const metadata: Metadata = {
-  title: "Eve & Juanma - Nuestra Boda",
+  title: "Evelyn & Juan Manuel | 15 de noviembre, 2026",
   description:
-    "Te invitamos a celebrar nuestra boda. Un dia lleno de amor, alegria y momentos inolvidables.",
-  icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
-  },
-};
-
-export const viewport: Viewport = {
-  themeColor: "#FAF8F5",
-  width: "device-width",
-  initialScale: 1,
-  userScalable: false,
+    "Nos casamos y queremos que seas parte de este día. Acompañanos a celebrar nuestro casamiento.",
 };
 
 export default function RootLayout({
@@ -51,10 +33,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${cormorant.variable} ${lato.variable}`}>
-      <body className="font-sans antialiased">
+    <html lang="es">
+      <body
+        className={`${display.variable} ${body.variable} ${script.variable}`}
+      >
         {children}
-        <Analytics />
       </body>
     </html>
   );
