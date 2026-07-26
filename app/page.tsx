@@ -122,7 +122,7 @@ function FlipUnit({ value, label }: { value?: number; label: string }) {
 }
 
 /* Clase reutilizable para los rótulos "eyebrow" en mayúsculas */
-const EYEBROW = "c";
+const EYEBROW = "font-display text-[16px] tracking-widest2";
 
 export default function Home() {
   const countdown = useCountdown(WEDDING_DATE);
@@ -190,7 +190,7 @@ export default function Home() {
 
       {/* ================= BIENVENIDA / CITA ================= */}
       <Reveal>
-        <section className="mx-auto max-w-2xl px-6 py-24 text-center sm:py-28 sections">
+        <section className="mx-auto max-w-2xl px-6 py-24 text-center sm:py-28">
           <p className="font-body text-[32px] italic leading-relaxed text-principal sm:text-[38px]">
             Nos casamos y queremos que seas parte de este día.
           </p>
@@ -202,9 +202,9 @@ export default function Home() {
 
       {/* ================= CUENTA REGRESIVA ================= */}
       <Reveal>
-        <section className="prueba relative px-6 py-20 text-center sm:py-24">
+        <section className="container-reloj relative px-6 py-20 text-center sm:py-24">
           {/* <p className={EYEBROW}>FALTA POCO</p> */}
-          <p className="texto-prueba">FALTA POCO</p>
+          <p className="texto-reloj">FALTA POCO</p>
           <div className="relative z-[2] mx-auto mt-8 grid max-w-md grid-cols-4 gap-3 sm:gap-6">
             <FlipUnit value={countdown?.days} label="Días" />
             <FlipUnit value={countdown?.hours} label="Horas" />
@@ -219,7 +219,7 @@ export default function Home() {
         <section className="mx-auto max-w-4xl px-6 py-24 sm:py-28">
           <div className="text-center">
             <p className={EYEBROW}>LA CELEBRACIÓN</p>
-            <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
+            <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[62px]">
               Dónde y cuándo
             </h2>
           </div>
@@ -309,7 +309,7 @@ export default function Home() {
       <Reveal>
         <section className="mx-auto max-w-xl px-6 py-24 text-center sm:py-28">
           <p className={EYEBROW}>CÓDIGO DE VESTIMENTA</p>
-          <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
+          <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[62px]">
             Elegante formal
           </h2>
           <div className="mx-auto my-8 w-10">

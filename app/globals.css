@@ -47,7 +47,7 @@ html {
 }
 
 body {
-  background-color: var(--color-secundario);
+  background-color: #fff;
   color: var(--color-principal);
   font-family: var(--font-body), serif;
   -webkit-font-smoothing: antialiased;
@@ -133,8 +133,7 @@ textarea:focus-visible {
     #35547a 50%,
     #5b7796 64%,
     #94a8bb 78%,
-    #d3dce4 90%,
-    #ffffff 100%
+    #eef3f8 100%
   );
 }
 
@@ -148,8 +147,7 @@ textarea:focus-visible {
     #35547a 50%,
     #5b7796 64%,
     #94a8bb 78%,
-    #d3dce4 90%,
-    #ffffff 100%
+    #eef3f8 100%
   );
 }
 
@@ -314,20 +312,16 @@ textarea:focus-visible {
   background-repeat: repeat;
 }
 
-.prueba {
+.container-reloj {
   /* background-color: #f7edd4; */
   /* background-color: #014e5d; */
-  background-color: #102948;
+  background-color: var(--color-principal);
   /* #efe4c9 */
 }
 
-.texto-prueba {
+.texto-reloj {
   font-family: var(--font-display);
   font-size: 25px;
   letter-spacing: 0.2em;
   color: var(--color-dorado);
-}
-
-.sections {
-  /* background-color: #fff; */
 }
