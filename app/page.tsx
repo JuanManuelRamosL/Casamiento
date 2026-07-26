@@ -85,10 +85,12 @@ function useCountdown(target: Date) {
 function Divider({ tone = "dorado" }: { tone?: "dorado" | "principal" }) {
   const lineColor = tone === "dorado" ? "shimmer-line" : "bg-principal/40";
   return (
-    <div className="flex items-center justify-center gap-4" aria-hidden="true">
-      <span className={`h-px w-14 sm:w-20 ${lineColor}`} />
+    <div className="flex items-center justify-center gap-0" aria-hidden="true">
       <span className="mark-diamond" />
       <span className={`h-px w-14 sm:w-20 ${lineColor}`} />
+      <span className={`h-px w-14 sm:w-20 ${lineColor}`} />
+      <span className={`h-px w-14 sm:w-20 ${lineColor}`} />
+      <span className="mark-diamond" />
     </div>
   );
 }
@@ -141,17 +143,17 @@ export default function Home() {
   return (
     <main className="overflow-x-hidden bg-secundario">
       {/* ================= HERO ================= */}
-      <section className="hero-gradient grain relative flex min-h-[100svh] flex-col items-center justify-center px-6 py-24 text-center">
+      <section className="hero-gradient grain-hero relative flex min-h-[100svh] flex-col items-center justify-center px-6 py-24 text-center">
         <div className="relative z-[2] flex w-full max-w-2xl flex-col items-center">
           <p
-            className="fade-in-up font-display text-[19px] tracking-widest2 text-dorado sm:text-[20px]"
+            className="fade-in-up font-display text-[17px] tracking-widest2 text-dorado sm:text-[20px]"
             style={{ animationDelay: "0.1s" }}
           >
             NOS CASAMOS
           </p>
 
           <h1
-            className="write-in mt-6 font-script text-[68px] leading-[0.95] tracking-[0.02em] text-blanco sm:text-[80px]"
+            className="write-in mt-6 font-script text-[54px] leading-[0.95] tracking-[0.02em] text-blanco sm:text-[80px]"
             style={{ animationDelay: "0.4s" }}
           >
             Evelyn
@@ -160,7 +162,7 @@ export default function Home() {
           <div className="my-3 flex items-center gap-3 sm:my-4 sm:gap-5">
             <span className="h-px w-16 bg-blanco/40 sm:w-24" />
             <span
-              className="write-in font-script text-[38px] tracking-[0.02em] text-dorado sm:text-[44px]"
+              className="write-in font-script text-[30px] tracking-[0.02em] text-dorado sm:text-[44px]"
               style={{ animationDelay: "1.6s", animationDuration: "0.6s" }}
             >
               y
@@ -169,7 +171,7 @@ export default function Home() {
           </div>
 
           <h1
-            className="write-in font-script text-[68px] leading-[0.95] tracking-[0.02em] text-blanco sm:text-[80px]"
+            className="write-in font-script text-[54px] leading-[1] tracking-[0.02em] text-blanco sm:text-[80px]"
             style={{ animationDelay: "2.1s", animationDuration: "1.3s" }}
           >
             Juan Manuel
@@ -177,20 +179,12 @@ export default function Home() {
 
           <div className="mt-14 sm:mt-16">
             <p
-              className="fade-in-up mt-3 font-display text-[22px] tracking-widest2 text-dorado-claro sm:text-[24px]"
-              style={{ animationDelay: "3.4s" }}
+              className="fade-in-up mt-3 font-display text-[18px] tracking-widest2 text-dorado-claro sm:text-[24px]"
+              style={{ animationDelay: "3.6s" }}
             >
               15 DE NOVIEMBRE, 2026
             </p>
           </div>
-        </div>
-
-        {/* Indicador de scroll, discreto */}
-        <div className="absolute bottom-8 left-1/2 z-[2] -translate-x-1/2 text-blanco/70">
-          <span
-            className="block h-8 w-px animate-pulse bg-blanco/50"
-            aria-hidden="true"
-          />
         </div>
       </section>
 
@@ -203,7 +197,6 @@ export default function Home() {
           <div className="mt-8">
             <Divider />
           </div>
-    
         </section>
       </Reveal>
 
@@ -424,12 +417,6 @@ export default function Home() {
 
               {asistencia === "si" && (
                 <div>
-                  <label
-                    htmlFor="acompanantes"
-                    className="font-display text-[20px] tracking-widest text-principal/70"
-                  >
-                    ACOMPAÑANTES
-                  </label>
                   <input
                     id="acompanantes"
                     type="number"
@@ -454,14 +441,14 @@ export default function Home() {
                   rows={3}
                   value={mensaje}
                   onChange={(e) => setMensaje(e.target.value)}
-                  className="mt-2 w-full border-b border-principal/30 bg-transparent py-2 font-body text-[26px] text-principal outline-none focus-visible:border-dorado"
+                  className="mt-2 w-full resize-none border-b border-principal/30 bg-transparent py-2 font-body text-[26px] text-principal outline-none focus-visible:border-dorado"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={!asistencia}
-                className="w-full bg-principal py-4 font-display text-[20px] tracking-widest2 text-blanco transition-colors hover:bg-principal2 disabled:cursor-not-allowed disabled:opacity-40"
+                className="w-full bg-principal py-4 font-display text-[20px] tracking-widest2 text-blanco transition-colors hover:bg-principal2 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
               >
                 CONFIRMAR ASISTENCIA
               </button>
