@@ -149,72 +149,110 @@ function FloatingHeart() {
   // Refs para mantener estado sin causar re-renders
   const isIdleRef = useRef(false);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const currentYRef = useRef<number>(8);
-  const currentXRef = useRef<number>(50);
-  const currentRotationRef = useRef<number>(0);
-  const currentScaleRef = useRef<number>(1);
   const animationFrameRef = useRef<number | null>(null);
+
+  // Refs para la posición exacta del corazón
+  const positionRef = useRef({
+    y: 8,
+    x: 50,
+    rotation: 0,
+    scale: 1,
+    opacity: 0.8,
+  });
+
+  // Refs para el estado idle - GUARDAMOS LA POSICIÓN INICIAL DEL IDLE
+  const idleStateRef = useRef({
+    startTime: Date.now(),
+    // Guardamos la posición exacta donde empezó el idle
+    baseY: 8,
+    baseX: 50,
+    baseRotation: 0,
+  });
+
+  // Ref para detectar si es móvil
+  const isMobileRef = useRef(false);
 
   useEffect(() => {
     const heart = heartRef.current;
     if (!heart) return;
 
+    // Detectar si es móvil
+    const checkMobile = () => {
+      isMobileRef.current = window.innerWidth < 768;
+      if (isMobileRef.current) {
+        const svg = heart.querySelector("svg");
+        if (svg) {
+          svg.style.width = "20px";
+          svg.style.height = "20px";
+        }
+      } else {
+        const svg = heart.querySelector("svg");
+        if (svg) {
+          svg.style.width = "28px";
+          svg.style.height = "28px";
+        }
+      }
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
     let startTime = Date.now();
-    let idleStartTime = Date.now();
 
-    // Configuración del camino
-    const amplitude = 30;
+    // Configuración del camino - ajustada para móvil
+    const getAmplitude = () => (isMobileRef.current ? 15 : 30);
 
-    // Función para actualizar la posición del corazón
+    // Función para actualizar la posición del corazón (única fuente de verdad)
     const updateHeartPosition = (
       yPercent: number,
       xPercent: number,
       rotation: number,
       scale: number,
+      opacity: number,
+      glowIntensity: number = 0,
     ) => {
       if (!heart) return;
 
-      // Guardar valores actuales
-      currentYRef.current = yPercent;
-      currentXRef.current = xPercent;
-      currentRotationRef.current = rotation;
-      currentScaleRef.current = scale;
+      // Limitar la posición Y para que nunca salga de la pantalla
+      const minY = 5;
+      const maxY = 95;
+      const clampedY = Math.min(maxY, Math.max(minY, yPercent));
 
-      // Aplicar posición
-      heart.style.top = `${Math.min(92, Math.max(8, yPercent))}%`;
-      heart.style.left = `${xPercent}%`;
+      // Limitar la posición X
+      const minX = 5;
+      const maxX = 95;
+      const clampedX = Math.min(maxX, Math.max(minX, xPercent));
+
+      // Guardar posición exacta (clampeda)
+      positionRef.current = {
+        y: clampedY,
+        x: clampedX,
+        rotation: rotation,
+        scale: scale,
+        opacity: opacity,
+      };
+
+      // Aplicar al DOM
+      heart.style.top = `${clampedY}%`;
+      heart.style.left = `${clampedX}%`;
       heart.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
-    };
+      heart.style.opacity = `${opacity}`;
 
-    // Función para actualizar el brillo
-    const updateGlow = (intensity: number) => {
-      if (!heart) return;
+      // Aplicar glow
       const svg = heart.querySelector("svg");
       if (svg) {
-        const glow = 10 + intensity * 25;
-        const opacity = 0.2 + intensity * 0.6;
-        svg.style.filter = `drop-shadow(0 0 ${glow}px rgba(213, 176, 55, ${opacity}))`;
+        if (glowIntensity > 0.05) {
+          const glow = 8 + glowIntensity * 25;
+          const glowOpacity = 0.15 + glowIntensity * 0.65;
+          svg.style.filter = `drop-shadow(0 0 ${glow}px rgba(213, 176, 55, ${glowOpacity}))`;
+        } else {
+          svg.style.filter = "drop-shadow(0 0 8px rgba(213, 176, 55, 0.3))";
+        }
       }
     };
 
-    // Función para manejar el scroll
-    const handleScroll = () => {
-      // Resetear el timer de idle
-      if (idleTimerRef.current) {
-        clearTimeout(idleTimerRef.current);
-        idleTimerRef.current = null;
-      }
-
-      // Salir del modo idle
-      if (isIdleRef.current) {
-        isIdleRef.current = false;
-        // Restaurar opacidad normal
-        if (heart) {
-          heart.style.opacity = "0.8";
-        }
-      }
-
-      // Calcular posición basada en scroll
+    // Función para calcular posición basada en scroll
+    const calculateScrollPosition = () => {
       const currentScrollY = window.scrollY;
       const elapsed = (Date.now() - startTime) / 1000;
 
@@ -222,11 +260,12 @@ function FloatingHeart() {
       const maxScroll = document.documentElement.scrollHeight - viewportHeight;
       const scrollProgress = maxScroll > 0 ? currentScrollY / maxScroll : 0;
 
-      // Posición vertical: desde 8% hasta 92%
-      const yPosition = 8 + scrollProgress * 84;
-      const yPercent = Math.min(92, Math.max(8, yPosition));
+      // Posición vertical: desde 10% hasta 90%
+      const yPosition = 10 + scrollProgress * 80;
+      const yPercent = Math.min(90, Math.max(10, yPosition));
 
       // Posición horizontal: movimiento ondulante
+      const amplitude = getAmplitude();
       const waveOffset =
         Math.sin(elapsed * 0.5 + scrollProgress * 20) * amplitude;
       const xPercent = 50 + waveOffset;
@@ -235,91 +274,146 @@ function FloatingHeart() {
       const rotation = Math.sin(elapsed * 0.3 + scrollProgress * 15) * 8;
       const scale = 1 + Math.sin(elapsed * 0.2) * 0.05;
 
-      // Actualizar posición
-      updateHeartPosition(yPercent, xPercent, rotation, scale);
-
       // Opacidad
       const fadeProgress = Math.min(
         1,
         Math.min(scrollProgress * 3, (1 - scrollProgress) * 3),
       );
-      heart.style.opacity = `${0.5 + fadeProgress * 0.4}`;
+      const opacity = 0.5 + fadeProgress * 0.4;
 
-      // Resetear brillo
-      updateGlow(0);
-
-      // Configurar timer para modo idle (3 segundos después de dejar de hacer scroll)
-      idleTimerRef.current = setTimeout(() => {
-        if (!isIdleRef.current) {
-          isIdleRef.current = true;
-          idleStartTime = Date.now();
-          // Guardar la posición actual para el modo idle
-          // Ya está guardada en currentYRef y currentXRef
-        }
-      }, 3000);
+      return { yPercent, xPercent, rotation, scale, opacity };
     };
 
-    // Función para la animación idle
-    const updateIdleAnimation = () => {
-      if (!isIdleRef.current || !heart) return;
+    // Función para calcular posición en modo idle
+    const calculateIdlePosition = (elapsed: number) => {
+      // Usar la posición BASE guardada cuando empezó el idle
+      const baseY = idleStateRef.current.baseY;
+      const baseX = idleStateRef.current.baseX;
+      const baseRotation = idleStateRef.current.baseRotation;
 
-      const elapsed = (Date.now() - idleStartTime) / 1000;
-
-      // Obtener la posición actual donde quedó el corazón
-      const baseY = currentYRef.current;
-      const baseX = currentXRef.current;
-      const baseRotation = currentRotationRef.current;
-
-      // Movimiento suave arriba/abajo (amplitud de 2.5%)
-      const idleAmplitude = 2.5;
+      // Movimiento suave arriba/abajo - desde la posición base
+      const idleAmplitude = isMobileRef.current ? 1.5 : 2.5;
       const idleSpeed = 0.5;
       const yOffset = Math.sin(elapsed * idleSpeed) * idleAmplitude;
 
-      // Movimiento horizontal sutil
-      const xOffset = Math.sin(elapsed * 0.3 + 1) * 6;
+      // Movimiento horizontal sutil - desde la posición base
+      const xOffsetAmplitude = isMobileRef.current ? 3 : 6;
+      const xOffset = Math.sin(elapsed * 0.3 + 1) * xOffsetAmplitude;
 
-      // Latido del corazón (pulso brillante)
-      const beatPhase = Math.sin(elapsed * 1.8);
-      const beatValue = Math.max(0, Math.sin(elapsed * 1.8));
-      const beatScale = 1 + beatValue * 0.08;
-      const glowIntensity = beatValue * 0.6 + 0.2;
+      // Latido del corazón
+      const beatSpeed = isMobileRef.current ? 1.5 : 1.8;
+      const beatValue = Math.max(0, Math.sin(elapsed * beatSpeed));
+      const beatScale = 1 + beatValue * (isMobileRef.current ? 0.05 : 0.08);
+      const glowIntensity = beatValue * (isMobileRef.current ? 0.4 : 0.6) + 0.2;
 
-      // Rotación suave durante idle
+      // Rotación suave desde la base
       const idleRotation = baseRotation + Math.sin(elapsed * 0.2) * 3;
 
-      // Calcular nueva posición
+      // Opacidad
+      const idleOpacity = 0.6 + beatValue * 0.25;
+
+      // Calcular nueva posición (SIEMPRE desde la base)
       const newY = baseY + yOffset;
       const newX = baseX + xOffset;
 
-      // Aplicar posición con el offset idle
-      heart.style.top = `${Math.min(92, Math.max(8, newY))}%`;
-      heart.style.left = `${newX}%`;
-      heart.style.transform = `translate(-50%, -50%) rotate(${idleRotation}deg) scale(${beatScale})`;
+      // Limitar para que nunca se salga
+      const finalY = Math.min(92, Math.max(8, newY));
+      const finalX = Math.min(88, Math.max(12, newX));
 
-      // Efecto de brillo pulsante
-      updateGlow(glowIntensity);
+      return {
+        yPercent: finalY,
+        xPercent: finalX,
+        rotation: idleRotation,
+        scale: beatScale,
+        opacity: idleOpacity,
+        glowIntensity: glowIntensity,
+      };
+    };
 
-      // Opacidad suave
-      heart.style.opacity = `${0.6 + beatValue * 0.3}`;
+    // Manejador de scroll
+    const handleScroll = () => {
+      // Resetear timer de idle
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
+        idleTimerRef.current = null;
+      }
+
+      // Salir del modo idle inmediatamente
+      if (isIdleRef.current) {
+        isIdleRef.current = false;
+        // Calcular y aplicar posición de scroll inmediatamente
+        const pos = calculateScrollPosition();
+        updateHeartPosition(
+          pos.yPercent,
+          pos.xPercent,
+          pos.rotation,
+          pos.scale,
+          pos.opacity,
+          0,
+        );
+        return;
+      }
+
+      // Si no está en idle, actualizar posición normal
+      const pos = calculateScrollPosition();
+      updateHeartPosition(
+        pos.yPercent,
+        pos.xPercent,
+        pos.rotation,
+        pos.scale,
+        pos.opacity,
+        0,
+      );
+
+      // Configurar timer para modo idle (3 segundos)
+      idleTimerRef.current = setTimeout(() => {
+        if (!isIdleRef.current) {
+          isIdleRef.current = true;
+          // GUARDAR LA POSICIÓN ACTUAL EXACTA CUANDO EMPIEZA EL IDLE
+          idleStateRef.current = {
+            startTime: Date.now(),
+            baseY: positionRef.current.y,
+            baseX: positionRef.current.x,
+            baseRotation: positionRef.current.rotation,
+          };
+        }
+      }, 3000);
     };
 
     // Loop principal de animación
     const animate = () => {
       if (isIdleRef.current) {
-        updateIdleAnimation();
+        // Modo idle: calcular y aplicar posición idle
+        const elapsed = (Date.now() - idleStateRef.current.startTime) / 1000;
+        const idlePos = calculateIdlePosition(elapsed);
+        updateHeartPosition(
+          idlePos.yPercent,
+          idlePos.xPercent,
+          idlePos.rotation,
+          idlePos.scale,
+          idlePos.opacity,
+          idlePos.glowIntensity,
+        );
       }
+
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    // Función throttle para el scroll
+    // Throttle para el scroll
     let ticking = false;
+    let lastScrollY = window.scrollY;
+
     const onScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
-        ticking = true;
+      const currentScrollY = window.scrollY;
+      if (currentScrollY !== lastScrollY) {
+        lastScrollY = currentScrollY;
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            handleScroll();
+            ticking = false;
+          });
+          ticking = true;
+        }
       }
     };
 
@@ -327,7 +421,15 @@ function FloatingHeart() {
     window.addEventListener("scroll", onScroll, { passive: true });
 
     // Inicializar con la primera posición
-    handleScroll();
+    const initialPos = calculateScrollPosition();
+    updateHeartPosition(
+      initialPos.yPercent,
+      initialPos.xPercent,
+      initialPos.rotation,
+      initialPos.scale,
+      initialPos.opacity,
+      0,
+    );
 
     // Iniciar el loop de animación
     animate();
@@ -335,6 +437,7 @@ function FloatingHeart() {
     // Cleanup
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", checkMobile);
       if (idleTimerRef.current) {
         clearTimeout(idleTimerRef.current);
       }
@@ -351,7 +454,7 @@ function FloatingHeart() {
       ref={heartRef}
       className="fixed pointer-events-none z-50 transition-none"
       style={{
-        top: "8%",
+        top: "10%",
         left: "50%",
         transform: "translate(-50%, -50%)",
         opacity: 0.8,
