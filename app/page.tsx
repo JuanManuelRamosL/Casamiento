@@ -100,7 +100,6 @@ function FloatingParticles() {
       const time = timestamp / 1000;
 
       particles.forEach((p) => {
-        // Movimiento
         p.x += p.speedX;
         p.y += p.speedY;
 
@@ -117,21 +116,17 @@ function FloatingParticles() {
           p.y = 0;
         }
 
-        // Latido muy sutil (casi imperceptible)
         const beat = Math.sin(time * 0.8 + p.phase);
         const beatFactor = 0.85 + (beat * 0.5 + 0.5) * 0.15;
         const currentSize = p.baseSize * beatFactor;
 
-        // Brillo muy sutil
         const glowIntensity =
           0.2 + (Math.sin(time * 0.8 + p.phase) * 0.5 + 0.5) * 0.15;
 
-        // Color dorado suave
         const r = 213;
         const g = 176;
         const b = 55;
 
-        // Sombra muy sutil (glow pequeño)
         const shadowSize = currentSize * 2.5;
         const gradient = ctx.createRadialGradient(
           p.x,
@@ -151,20 +146,17 @@ function FloatingParticles() {
         );
         gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
 
-        // Dibujar el glow suave
         ctx.beginPath();
         ctx.arc(p.x, p.y, shadowSize, 0, Math.PI * 2);
         ctx.fillStyle = gradient;
         ctx.fill();
 
-        // Dibujar el círculo principal
         ctx.beginPath();
         ctx.arc(p.x, p.y, currentSize, 0, Math.PI * 2);
         const opacity = p.opacity * (0.7 + glowIntensity * 0.3);
         ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
         ctx.fill();
 
-        // Borde muy sutil
         ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.15})`;
         ctx.lineWidth = 0.5;
         ctx.stroke();
@@ -200,12 +192,10 @@ function FloatingHeart() {
   const heartRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(true);
 
-  // Refs para mantener estado sin causar re-renders
   const isIdleRef = useRef(false);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  // Refs para la posición exacta del corazón
   const positionRef = useRef({
     y: 8,
     x: 50,
@@ -214,23 +204,19 @@ function FloatingHeart() {
     opacity: 0.8,
   });
 
-  // Refs para el estado idle - GUARDAMOS LA POSICIÓN INICIAL DEL IDLE
   const idleStateRef = useRef({
     startTime: Date.now(),
-    // Guardamos la posición exacta donde empezó el idle
     baseY: 8,
     baseX: 50,
     baseRotation: 0,
   });
 
-  // Ref para detectar si es móvil
   const isMobileRef = useRef(false);
 
   useEffect(() => {
     const heart = heartRef.current;
     if (!heart) return;
 
-    // Detectar si es móvil
     const checkMobile = () => {
       isMobileRef.current = window.innerWidth < 768;
       if (isMobileRef.current) {
@@ -253,10 +239,8 @@ function FloatingHeart() {
 
     let startTime = Date.now();
 
-    // Configuración del camino - ajustada para móvil
     const getAmplitude = () => (isMobileRef.current ? 15 : 30);
 
-    // Función para actualizar la posición del corazón (única fuente de verdad)
     const updateHeartPosition = (
       yPercent: number,
       xPercent: number,
@@ -267,17 +251,14 @@ function FloatingHeart() {
     ) => {
       if (!heart) return;
 
-      // Limitar la posición Y para que nunca salga de la pantalla
       const minY = 5;
       const maxY = 95;
       const clampedY = Math.min(maxY, Math.max(minY, yPercent));
 
-      // Limitar la posición X
       const minX = 5;
       const maxX = 95;
       const clampedX = Math.min(maxX, Math.max(minX, xPercent));
 
-      // Guardar posición exacta (clampeda)
       positionRef.current = {
         y: clampedY,
         x: clampedX,
@@ -286,13 +267,11 @@ function FloatingHeart() {
         opacity: opacity,
       };
 
-      // Aplicar al DOM
       heart.style.top = `${clampedY}%`;
       heart.style.left = `${clampedX}%`;
       heart.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
       heart.style.opacity = `${opacity}`;
 
-      // Aplicar glow
       const svg = heart.querySelector("svg");
       if (svg) {
         if (glowIntensity > 0.05) {
@@ -305,7 +284,6 @@ function FloatingHeart() {
       }
     };
 
-    // Función para calcular posición basada en scroll
     const calculateScrollPosition = () => {
       const currentScrollY = window.scrollY;
       const elapsed = (Date.now() - startTime) / 1000;
@@ -314,21 +292,17 @@ function FloatingHeart() {
       const maxScroll = document.documentElement.scrollHeight - viewportHeight;
       const scrollProgress = maxScroll > 0 ? currentScrollY / maxScroll : 0;
 
-      // Posición vertical: desde 10% hasta 90%
       const yPosition = 10 + scrollProgress * 80;
       const yPercent = Math.min(90, Math.max(10, yPosition));
 
-      // Posición horizontal: movimiento ondulante
       const amplitude = getAmplitude();
       const waveOffset =
         Math.sin(elapsed * 0.5 + scrollProgress * 20) * amplitude;
       const xPercent = 50 + waveOffset;
 
-      // Rotación sutil
       const rotation = Math.sin(elapsed * 0.3 + scrollProgress * 15) * 8;
       const scale = 1 + Math.sin(elapsed * 0.2) * 0.05;
 
-      // Opacidad
       const fadeProgress = Math.min(
         1,
         Math.min(scrollProgress * 3, (1 - scrollProgress) * 3),
@@ -338,39 +312,29 @@ function FloatingHeart() {
       return { yPercent, xPercent, rotation, scale, opacity };
     };
 
-    // Función para calcular posición en modo idle
     const calculateIdlePosition = (elapsed: number) => {
-      // Usar la posición BASE guardada cuando empezó el idle
       const baseY = idleStateRef.current.baseY;
       const baseX = idleStateRef.current.baseX;
       const baseRotation = idleStateRef.current.baseRotation;
 
-      // Movimiento suave arriba/abajo - desde la posición base
       const idleAmplitude = isMobileRef.current ? 1.5 : 2.5;
       const idleSpeed = 0.5;
       const yOffset = Math.sin(elapsed * idleSpeed) * idleAmplitude;
 
-      // Movimiento horizontal sutil - desde la posición base
       const xOffsetAmplitude = isMobileRef.current ? 3 : 6;
       const xOffset = Math.sin(elapsed * 0.3 + 1) * xOffsetAmplitude;
 
-      // Latido del corazón
       const beatSpeed = isMobileRef.current ? 1.5 : 1.8;
       const beatValue = Math.max(0, Math.sin(elapsed * beatSpeed));
       const beatScale = 1 + beatValue * (isMobileRef.current ? 0.05 : 0.08);
       const glowIntensity = beatValue * (isMobileRef.current ? 0.4 : 0.6) + 0.2;
 
-      // Rotación suave desde la base
       const idleRotation = baseRotation + Math.sin(elapsed * 0.2) * 3;
-
-      // Opacidad
       const idleOpacity = 0.6 + beatValue * 0.25;
 
-      // Calcular nueva posición (SIEMPRE desde la base)
       const newY = baseY + yOffset;
       const newX = baseX + xOffset;
 
-      // Limitar para que nunca se salga
       const finalY = Math.min(92, Math.max(8, newY));
       const finalX = Math.min(88, Math.max(12, newX));
 
@@ -384,18 +348,14 @@ function FloatingHeart() {
       };
     };
 
-    // Manejador de scroll
     const handleScroll = () => {
-      // Resetear timer de idle
       if (idleTimerRef.current) {
         clearTimeout(idleTimerRef.current);
         idleTimerRef.current = null;
       }
 
-      // Salir del modo idle inmediatamente
       if (isIdleRef.current) {
         isIdleRef.current = false;
-        // Calcular y aplicar posición de scroll inmediatamente
         const pos = calculateScrollPosition();
         updateHeartPosition(
           pos.yPercent,
@@ -408,7 +368,6 @@ function FloatingHeart() {
         return;
       }
 
-      // Si no está en idle, actualizar posición normal
       const pos = calculateScrollPosition();
       updateHeartPosition(
         pos.yPercent,
@@ -419,11 +378,9 @@ function FloatingHeart() {
         0,
       );
 
-      // Configurar timer para modo idle (3 segundos)
       idleTimerRef.current = setTimeout(() => {
         if (!isIdleRef.current) {
           isIdleRef.current = true;
-          // GUARDAR LA POSICIÓN ACTUAL EXACTA CUANDO EMPIEZA EL IDLE
           idleStateRef.current = {
             startTime: Date.now(),
             baseY: positionRef.current.y,
@@ -434,10 +391,8 @@ function FloatingHeart() {
       }, 3000);
     };
 
-    // Loop principal de animación
     const animate = () => {
       if (isIdleRef.current) {
-        // Modo idle: calcular y aplicar posición idle
         const elapsed = (Date.now() - idleStateRef.current.startTime) / 1000;
         const idlePos = calculateIdlePosition(elapsed);
         updateHeartPosition(
@@ -453,7 +408,6 @@ function FloatingHeart() {
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    // Throttle para el scroll
     let ticking = false;
     let lastScrollY = window.scrollY;
 
@@ -471,10 +425,8 @@ function FloatingHeart() {
       }
     };
 
-    // Configurar listeners
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    // Inicializar con la primera posición
     const initialPos = calculateScrollPosition();
     updateHeartPosition(
       initialPos.yPercent,
@@ -485,10 +437,8 @@ function FloatingHeart() {
       0,
     );
 
-    // Iniciar el loop de animación
     animate();
 
-    // Cleanup
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", checkMobile);
@@ -538,13 +488,11 @@ function FloatingHeart() {
             <stop offset="100%" stopColor="#d5b037" />
           </linearGradient>
         </defs>
-        {/* Brillo interior */}
         <path
           d="M12 18.5l-1.45-1.32C5.4 13.36 2 10.28 2 8.5 2 7.42 2.5 6.5 3.5 5.8c1.2-.9 2.8-.8 4 .2L12 10.5l4.5-4.5c1.2-1 2.8-1.1 4-.2 1 .7 1.5 1.6 1.5 2.7 0 1.78-3.4 4.86-8.55 9.54L12 18.5z"
           fill="rgba(255,255,255,0.3)"
           opacity="0.5"
         />
-        {/* Partículas alrededor del corazón */}
         <circle cx="6" cy="7" r="1.5" fill="#e8cd7a" opacity="0.4">
           <animate
             attributeName="opacity"
@@ -638,13 +586,10 @@ function ScrollProgress() {
       const current = window.scrollY;
       const progress = total > 0 ? current / total : 0;
 
-      // Limitar entre 0 y 1
       const clampedProgress = Math.min(1, Math.max(0, progress));
 
-      // Solo actualizar si hay cambio significativo
       if (Math.abs(clampedProgress - currentProgressRef.current) > 0.0001) {
         currentProgressRef.current = clampedProgress;
-        // Usar transform scaleX para mejor rendimiento
         bar.style.transform = `scaleX(${clampedProgress})`;
       }
     };
@@ -664,7 +609,6 @@ function ScrollProgress() {
       updateProgress();
     };
 
-    // Actualizar al montar
     updateProgress();
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -690,6 +634,127 @@ function ScrollProgress() {
           transition: "transform 0.08s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         }}
       />
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------
+ * Componente: CardStack - efecto de cartas apiladas que se revelan al hacer scroll
+ * Cada sección aparece como una carta que se desliza sobre la anterior
+ * ---------------------------------------------------------------------- */
+function CardStack({
+  children,
+  className = "",
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => setIsVisible(true), delay);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "-20px 0px -20px 0px",
+      },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [delay]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let animationFrame: number;
+    let startTime: number | null = null;
+    const duration = 1000; // 1 segundo para la animación completa
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progressValue = Math.min(1, elapsed / duration);
+
+      // Efecto de easing suave (cubic-bezier personalizado)
+      const eased = 1 - Math.pow(1 - progressValue, 3);
+      setProgress(eased);
+
+      if (progressValue < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [isVisible]);
+
+  // Transformaciones según el progreso
+  const getTransform = () => {
+    if (!isVisible) {
+      return {
+        opacity: 0,
+        transform: "scale(0.92) translateY(40px) rotateX(-5deg)",
+        zIndex: 1,
+      };
+    }
+
+    const p = progress;
+    // Efecto de carta: escala, rotación y posición
+    const scale = 0.92 + p * 0.08;
+    const translateY = (1 - p) * 40;
+    const rotateX = (1 - p) * -5;
+    const opacity = 0.2 + p * 0.8;
+
+    // Sombra que se intensifica al aparecer
+    const shadowIntensity = p * 0.3;
+
+    return {
+      opacity: opacity,
+      transform: `scale(${scale}) translateY(${translateY}px) rotateX(${rotateX}deg)`,
+      zIndex: Math.floor(p * 10) + 1,
+      boxShadow: `0 ${shadowIntensity * 30}px ${shadowIntensity * 40}px rgba(16, 41, 72, ${shadowIntensity * 0.15})`,
+    };
+  };
+
+  const styles = getTransform();
+
+  return (
+    <div
+      ref={ref}
+      className={`${className}`}
+      style={{
+        opacity: styles.opacity,
+        transform: styles.transform,
+        zIndex: styles.zIndex,
+        boxShadow: styles.boxShadow,
+        transition: "box-shadow 0.3s ease",
+        willChange: "transform, opacity, box-shadow",
+        position: "relative",
+        background: "rgba(255, 255, 255, 0.6)",
+        backdropFilter: "blur(2px)",
+        borderRadius: "4px",
+        border: "1px solid rgba(213, 176, 55, 0.15)",
+      }}
+    >
+      {children}
     </div>
   );
 }
@@ -843,8 +908,6 @@ export default function Home() {
   const countdown = useCountdown(WEDDING_DATE);
   const heroRef = useParallax(0.2);
 
-  /* RSVP: estado local del formulario. Todavía no hay backend
-   * conectado, así que por ahora solo confirmamos en pantalla. */
   const [asistencia, setAsistencia] = useState<"si" | "no" | "">("");
   const [nombre, setNombre] = useState("");
   const [acompanantes, setAcompanantes] = useState("0");
@@ -912,7 +975,7 @@ export default function Home() {
       </section>
 
       {/* ================= BIENVENIDA / CITA ================= */}
-      <Reveal direction="fade" delay={100}>
+      <CardStack delay={100}>
         <section className="mx-auto max-w-2xl px-6 py-24 text-center sm:py-28">
           <p className="font-body text-[32px] italic leading-relaxed text-principal sm:text-[38px]">
             Nos casamos y queremos que seas parte de este día.
@@ -921,10 +984,10 @@ export default function Home() {
             <Divider />
           </div>
         </section>
-      </Reveal>
+      </CardStack>
 
       {/* ================= CUENTA REGRESIVA ================= */}
-      <Reveal direction="scale" delay={150}>
+      <CardStack delay={150}>
         <section className="container-reloj relative px-6 py-20 text-center sm:py-24">
           <p className="texto-reloj">FALTA POCO</p>
           <div className="relative z-[2] mx-auto mt-8 grid max-w-md grid-cols-4 gap-3 sm:gap-6">
@@ -934,10 +997,10 @@ export default function Home() {
             <FlipUnit value={countdown?.seconds} label="Seg" />
           </div>
         </section>
-      </Reveal>
+      </CardStack>
 
       {/* ================= CEREMONIA Y FIESTA ================= */}
-      <Reveal direction="up" delay={100}>
+      <CardStack delay={100}>
         <section className="mx-auto max-w-4xl px-6 py-24 sm:py-28">
           <div className="text-center">
             <p className={EYEBROW}>LA CELEBRACIÓN</p>
@@ -947,7 +1010,6 @@ export default function Home() {
           </div>
 
           <div className="mt-14 grid gap-8 sm:mt-16 sm:grid-cols-2 sm:gap-10">
-            {/* Ceremonia - con efecto de brillo al hover */}
             <div className="card-glow rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center transition-all duration-300 hover:shadow-xl hover:shadow-dorado/5">
               <p className="font-display text-[22px] tracking-widest2 text-principal">
                 CEREMONIA
@@ -966,7 +1028,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Fiesta - con efecto de brillo al hover */}
             <div className="card-glow rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center transition-all duration-300 hover:shadow-xl hover:shadow-dorado/5">
               <p className="font-display text-[22px] tracking-widest2 text-principal">
                 FIESTA
@@ -986,49 +1047,10 @@ export default function Home() {
             </div>
           </div>
         </section>
-      </Reveal>
-
-      {/* ================= ITINERARIO (Comentado) ================= */}
-      {/* <Reveal direction="left" delay={100}>
-        <section className="grain relative bg-principal px-6 py-24 sm:py-28">
-          <div className="relative z-[2] mx-auto max-w-xl text-center">
-            <p className={EYEBROW}>ITINERARIO</p>
-            <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-blanco sm:text-[56px]">
-              Cómo va a ser el día
-            </h2>
-
-            <div className="mt-14 space-y-10 text-left sm:mt-16">
-              {[
-                { hora: "19:00", detalle: "Ceremonia religiosa" },
-                { hora: "20:30", detalle: "Recepción y brindis" },
-                { hora: "21:30", detalle: "Cena" },
-                { hora: "23:00", detalle: "Fiesta" },
-                { hora: "05:00", detalle: "Última canción" },
-              ].map((item, i, arr) => (
-                <div key={item.hora} className="flex gap-6">
-                  <div className="flex flex-col items-center">
-                    <span className="mark-diamond" />
-                    {i !== arr.length - 1 && (
-                      <span className="mt-2 h-full w-px flex-1 bg-dorado/30" />
-                    )}
-                  </div>
-                  <div className="pb-2">
-                    <p className="font-display text-[22px] tracking-widest text-dorado-claro">
-                      {item.hora}
-                    </p>
-                    <p className="mt-1 font-body text-[26px] text-blanco/90">
-                      {item.detalle}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </Reveal> */}
+      </CardStack>
 
       {/* ================= CÓDIGO DE VESTIMENTA ================= */}
-      <Reveal direction="right" delay={100}>
+      <CardStack delay={100}>
         <section className="mx-auto max-w-xl px-6 py-24 text-center sm:py-28">
           <p className={EYEBROW}>CÓDIGO DE VESTIMENTA</p>
           <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[62px]">
@@ -1043,10 +1065,10 @@ export default function Home() {
             vestidos de gala!
           </p>
         </section>
-      </Reveal>
+      </CardStack>
 
       {/* ================= MESA DE REGALOS ================= */}
-      <Reveal direction="scale" delay={150}>
+      <CardStack delay={150}>
         <section className="grain relative bg-principal px-6 py-24 text-center sm:py-28">
           <div className="relative z-[2] mx-auto max-w-xl">
             <p className={EYEBROW}>REGALOS</p>
@@ -1065,10 +1087,10 @@ export default function Home() {
             </button>
           </div>
         </section>
-      </Reveal>
+      </CardStack>
 
       {/* ================= RSVP ================= */}
-      <Reveal direction="up" delay={100}>
+      <CardStack delay={100}>
         <section className="mx-auto max-w-lg px-6 py-24 sm:py-28">
           <div className="text-center">
             <p className={EYEBROW}>CONFIRMACIÓN</p>
@@ -1184,7 +1206,7 @@ export default function Home() {
             </form>
           )}
         </section>
-      </Reveal>
+      </CardStack>
 
       {/* ================= FOOTER ================= */}
       <footer className="grain relative bg-principal px-6 py-20 text-center">
