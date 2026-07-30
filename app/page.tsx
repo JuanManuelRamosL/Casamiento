@@ -568,26 +568,73 @@ function FloatingHeart() {
 
 /* -------------------------------------------------------------------------
  * Componente: ScrollProgress - barra de progreso dorada en el scroll
+ * Versión ultra fluida usando transform scaleX
  * ---------------------------------------------------------------------- */
 function ScrollProgress() {
-  const [progress, setProgress] = useState(0);
+  const barRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
+  const currentProgressRef = useRef(0);
 
   useEffect(() => {
-    const handleScroll = () => {
+    const bar = barRef.current;
+    if (!bar) return;
+
+    const updateProgress = () => {
       const total = document.documentElement.scrollHeight - window.innerHeight;
       const current = window.scrollY;
-      setProgress((current / total) * 100);
+      const progress = total > 0 ? current / total : 0;
+
+      // Limitar entre 0 y 1
+      const clampedProgress = Math.min(1, Math.max(0, progress));
+
+      // Solo actualizar si hay cambio significativo
+      if (Math.abs(clampedProgress - currentProgressRef.current) > 0.0001) {
+        currentProgressRef.current = clampedProgress;
+        // Usar transform scaleX para mejor rendimiento
+        bar.style.transform = `scaleX(${clampedProgress})`;
+      }
     };
 
+    const handleScroll = () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+
+      rafRef.current = requestAnimationFrame(() => {
+        updateProgress();
+        rafRef.current = null;
+      });
+    };
+
+    const handleResize = () => {
+      updateProgress();
+    };
+
+    // Actualizar al montar
+    updateProgress();
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 w-full h-0.5 z-50 bg-transparent">
+    <div className="fixed top-0 left-0 w-full h-0.5 z-50 bg-transparent overflow-hidden">
       <div
-        className="h-full bg-dorado transition-all duration-150 ease-out"
-        style={{ width: `${progress}%` }}
+        ref={barRef}
+        className="h-full w-full bg-dorado origin-left"
+        style={{
+          transform: "scaleX(0)",
+          willChange: "transform",
+          transition: "transform 0.08s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        }}
       />
     </div>
   );
