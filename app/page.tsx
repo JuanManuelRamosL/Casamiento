@@ -42,6 +42,7 @@ function useParallax(speed: number = 0.3) {
 
 /* -------------------------------------------------------------------------
  * Componente: FloatingParticles - partículas doradas flotando en el hero
+ * Círculos sutiles con latido muy suave
  * ---------------------------------------------------------------------- */
 function FloatingParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -56,26 +57,27 @@ function FloatingParticles() {
       x: number;
       y: number;
       size: number;
+      baseSize: number;
       speedX: number;
       speedY: number;
       opacity: number;
-      rotation: number;
-      rotationSpeed: number;
+      phase: number;
     }> = [];
 
     const initParticles = () => {
       const count = 25;
       particles = [];
       for (let i = 0; i < count; i++) {
+        const size = Math.random() * 2.5 + 1.5;
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          size: Math.random() * 3 + 1.5,
-          speedX: (Math.random() - 0.5) * 0.4,
-          speedY: (Math.random() - 0.5) * 0.4 - 0.15,
-          opacity: Math.random() * 0.4 + 0.15,
-          rotation: Math.random() * Math.PI * 2,
-          rotationSpeed: (Math.random() - 0.5) * 0.02,
+          size: size,
+          baseSize: size,
+          speedX: (Math.random() - 0.5) * 0.2,
+          speedY: (Math.random() - 0.5) * 0.2 - 0.08,
+          opacity: Math.random() * 0.25 + 0.1,
+          phase: Math.random() * Math.PI * 2,
         });
       }
     };
@@ -92,41 +94,93 @@ function FloatingParticles() {
       initParticles();
     };
 
-    const animate = () => {
+    const animate = (timestamp: number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      const time = timestamp / 1000;
+
       particles.forEach((p) => {
+        // Movimiento
         p.x += p.speedX;
         p.y += p.speedY;
-        p.rotation += p.rotationSpeed;
 
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-        if (p.y < 0) p.y = canvas.height;
-        if (p.y > canvas.height) p.y = 0;
+        if (p.x < 0) {
+          p.x = canvas.width;
+        }
+        if (p.x > canvas.width) {
+          p.x = 0;
+        }
+        if (p.y < 0) {
+          p.y = canvas.height;
+        }
+        if (p.y > canvas.height) {
+          p.y = 0;
+        }
 
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
+        // Latido muy sutil (casi imperceptible)
+        const beat = Math.sin(time * 0.8 + p.phase);
+        const beatFactor = 0.85 + (beat * 0.5 + 0.5) * 0.15;
+        const currentSize = p.baseSize * beatFactor;
+
+        // Brillo muy sutil
+        const glowIntensity =
+          0.2 + (Math.sin(time * 0.8 + p.phase) * 0.5 + 0.5) * 0.15;
+
+        // Color dorado suave
+        const r = 213;
+        const g = 176;
+        const b = 55;
+
+        // Sombra muy sutil (glow pequeño)
+        const shadowSize = currentSize * 2.5;
+        const gradient = ctx.createRadialGradient(
+          p.x,
+          p.y,
+          0,
+          p.x,
+          p.y,
+          shadowSize,
+        );
+        gradient.addColorStop(
+          0,
+          `rgba(${r}, ${g}, ${b}, ${p.opacity * (0.3 + glowIntensity * 0.2)})`,
+        );
+        gradient.addColorStop(
+          0.5,
+          `rgba(${r}, ${g}, ${b}, ${p.opacity * (0.1 + glowIntensity * 0.1)})`,
+        );
+        gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+        // Dibujar el glow suave
         ctx.beginPath();
-        // Forma de diamante para las partículas
-        ctx.moveTo(0, -p.size);
-        ctx.lineTo(p.size, 0);
-        ctx.lineTo(0, p.size);
-        ctx.lineTo(-p.size, 0);
-        ctx.closePath();
-        ctx.fillStyle = `rgba(213, 176, 55, ${p.opacity})`;
+        ctx.arc(p.x, p.y, shadowSize, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
         ctx.fill();
-        ctx.restore();
+
+        // Dibujar el círculo principal
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, currentSize, 0, Math.PI * 2);
+        const opacity = p.opacity * (0.7 + glowIntensity * 0.3);
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        ctx.fill();
+
+        // Borde muy sutil
+        ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.15})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
       });
 
       requestAnimationFrame(animate);
     };
 
     resize();
-    animate();
+    const animationId = requestAnimationFrame(animate);
     window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+
+    return () => {
+      window.removeEventListener("resize", resize);
+      cancelAnimationFrame(animationId);
+    };
   }, []);
 
   return (
