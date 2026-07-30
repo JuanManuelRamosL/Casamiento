@@ -642,8 +642,8 @@ function ScrollProgress() {
 
 /* -------------------------------------------------------------------------
  * Reveal: envuelve una sección y le agrega un fade-up cuando entra en
- * pantalla. Respeta prefers-reduced-motion (ver globals.css).
- * Ahora con direcciones alternadas.
+ * pantalla. Respeta prefers-reduced-motion.
+ * Solo animación de entrada.
  * ---------------------------------------------------------------------- */
 function Reveal({
   children,
@@ -662,6 +662,7 @@ function Reveal({
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -669,8 +670,12 @@ function Reveal({
           observer.disconnect();
         }
       },
-      { threshold: 0.15 },
+      {
+        threshold: 0.15,
+        rootMargin: "-50px 0px -50px 0px",
+      },
     );
+
     observer.observe(node);
     return () => observer.disconnect();
   }, [delay]);
