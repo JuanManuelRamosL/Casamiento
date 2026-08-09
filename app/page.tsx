@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 /* -------------------------------------------------------------------------
@@ -124,6 +125,92 @@ function FlipUnit({ value, label }: { value?: number; label: string }) {
 /* Clase reutilizable para los rótulos "eyebrow" en mayúsculas */
 const EYEBROW = "c";
 
+const GALLERY_IMAGES = [
+  "/images/gallery-1.jpg",
+  "/images/gallery-2.jpg",
+  "/images/gallery-3.jpg",
+  "/images/gallery-4.jpg",
+  "/images/imagen1.jpeg",
+  "/images/imagen2.jpeg",
+  "/images/pelo.jpeg",
+  "/images/portada.jpeg",
+];
+
+/* -------------------------------------------------------------------------
+ * PhotoGallery: carrusel que avanza una foto cada 3s. Para el loop
+ * infinito se agrega una copia de la primera foto al final; al llegar
+ * a esa copia se salta a la foto 0 sin transición (truco clásico de
+ * carrusel infinito) para que nunca se note el reinicio.
+ * ---------------------------------------------------------------------- */
+function PhotoGallery() {
+  const total = GALLERY_IMAGES.length;
+  const slides = [...GALLERY_IMAGES, GALLERY_IMAGES[0]];
+  const [index, setIndex] = useState(0);
+  const [instant, setInstant] = useState(false);
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reduceMotion) return;
+    const id = setInterval(() => setIndex((i) => i + 1), 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    if (index !== total) return;
+    const timeout = setTimeout(() => {
+      setInstant(true);
+      setIndex(0);
+    }, 700);
+    return () => clearTimeout(timeout);
+  }, [index, total]);
+
+  useEffect(() => {
+    if (!instant) return;
+    const id = requestAnimationFrame(() => setInstant(false));
+    return () => cancelAnimationFrame(id);
+  }, [instant]);
+
+  return (
+    <div className="relative mx-auto max-w-xl overflow-hidden rounded-sm border border-dorado/30 bg-blanco/60">
+      <div
+        className="flex"
+        style={{
+          transform: `translateX(-${index * 100}%)`,
+          transition: instant ? "none" : "transform 0.7s ease",
+        }}
+      >
+        {slides.map((src, i) => (
+          <div
+            key={i}
+            className="relative aspect-4/5 w-full shrink-0 sm:aspect-16/10"
+          >
+            <Image
+              src={src}
+              alt={`Foto ${(i % total) + 1} de Evelyn y Juanma`}
+              fill
+              sizes="(min-width: 640px) 576px, 100vw"
+              className="object-cover"
+              priority={i === 0}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="absolute bottom-4 left-0 flex w-full justify-center gap-2">
+        {GALLERY_IMAGES.map((_, i) => (
+          <span
+            key={i}
+            className={`h-1.5 w-1.5 rounded-full transition-colors ${
+              index % total === i ? "bg-dorado" : "bg-blanco/50"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const countdown = useCountdown(WEDDING_DATE);
 
@@ -132,6 +219,7 @@ export default function Home() {
   const [asistencia, setAsistencia] = useState<"si" | "no" | "">("");
   const [nombre, setNombre] = useState("");
   const [acompanantes, setAcompanantes] = useState("0");
+  const [restricciones, setRestricciones] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [enviado, setEnviado] = useState(false);
 
@@ -228,40 +316,22 @@ export default function Home() {
             {/* Ceremonia */}
             <div className="rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center">
               <p className="font-display text-[22px] tracking-widest2 text-principal">
-                CEREMONIA
+                Jano's Bella vista 1
               </p>
               <div className="mx-auto my-5 w-10">
                 <Divider />
               </div>
               <p className="font-body text-[28px] text-principal">
-                Iglesia Nuestra Señora del Pilar
+               Corrientes 1682, Provincia de Buenos Aires
               </p>
               <p className="mt-2 font-body text-[24px] text-principal/70">
-                19:00 hs
+                16:30 hs
               </p>
-              <p className="font-body text-[24px] text-principal/70">
-                Recoleta, Buenos Aires
-              </p>
+          
             </div>
 
             {/* Fiesta */}
-            <div className="rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center">
-              <p className="font-display text-[22px] tracking-widest2 text-principal">
-                FIESTA
-              </p>
-              <div className="mx-auto my-5 w-10">
-                <Divider />
-              </div>
-              <p className="font-body text-[28px] text-principal">
-                Estancia La Candelaria
-              </p>
-              <p className="mt-2 font-body text-[24px] text-principal/70">
-                20:30 hs
-              </p>
-              <p className="font-body text-[24px] text-principal/70">
-                Ruta 2, km 68, Buenos Aires
-              </p>
-            </div>
+       
           </div>
         </section>
       </Reveal>
@@ -310,16 +380,30 @@ export default function Home() {
         <section className="mx-auto max-w-xl px-6 py-24 text-center sm:py-28">
           <p className={EYEBROW}>CÓDIGO DE VESTIMENTA</p>
           <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
-            Elegante formal
+            Elegante
           </h2>
           <div className="mx-auto my-8 w-10">
             <Divider />
           </div>
           <p className="mx-auto max-w-md font-body text-[26px] leading-relaxed text-principal/80">
-            Le pedimos a las invitadas que eviten el color blanco, para que sea
-            únicamente el vestido de la novia. ¡Gracias por acompañarnos
-            vestidos de gala!
+Queremos que nos acompañen en esta noche tan especial luciendo sus mejores galas. 
+
+Evitando la gama de azules y celestes que estarán reservados para la pareja. 💙
           </p>
+        </section>
+      </Reveal>
+
+      {/* ================= GALERÍA DE FOTOS ================= */}
+      <Reveal>
+        <section className="mx-auto max-w-xl px-6 py-24 text-center sm:py-28">
+          <p className={EYEBROW}></p>
+          <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
+            Nosotros
+          </h2>
+          <div className="mx-auto my-8 w-10">
+            <Divider />
+          </div>
+          <PhotoGallery />
         </section>
       </Reveal>
 
@@ -329,14 +413,13 @@ export default function Home() {
           <div className="relative z-[2] mx-auto max-w-xl">
             <p className={EYEBROW}>REGALOS</p>
             <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-blanco sm:text-[56px]">
-              Tu presencia ya es un regalo
+             Regalos
             </h2>
             <div className="mx-auto my-8 w-10">
               <Divider />
             </div>
             <p className="mx-auto max-w-md font-body text-[26px] leading-relaxed text-blanco/80">
-              Si además querés tener un gesto con nosotros, vamos a estar muy
-              felices de recibir tu aporte para nuestra luna de miel.
+           Si querés colaborar con un regalo, podés hacerlo con dinero para ayudarnos a cumplir nuestro sueño de la luna de miel. De preferencia en efectivo.
             </p>
             <button className="mt-8 border border-dorado px-8 py-3 font-display text-[20px] tracking-widest2 text-dorado-claro transition-colors hover:bg-dorado hover:text-principal">
               VER DATOS BANCARIOS
@@ -354,7 +437,7 @@ export default function Home() {
               Confirmá tu asistencia
             </h2>
             <p className="mt-4 font-body text-[24px] text-principal/70">
-              Por favor confirmá antes del 1º de octubre de 2026.
+              Por favor confirmá antes del 20º de septiembre de 2026.
             </p>
           </div>
 
@@ -418,40 +501,29 @@ export default function Home() {
 
               {asistencia === "si" && (
                 <div>
+                  <label
+                    htmlFor="restricciones"
+                    className="font-display text-[20px] tracking-widest text-principal/70"
+                  >
+                    RESTRICCIONES ALIMENTARIAS
+                  </label>
                   <input
-                    id="acompanantes"
-                    type="number"
-                    min={0}
-                    max={6}
-                    value={acompanantes}
-                    onChange={(e) => setAcompanantes(e.target.value)}
-                    className="mt-2 w-full border-b border-principal/30 bg-transparent py-2 font-body text-[26px] text-principal outline-none focus-visible:border-dorado"
+                    id="restricciones"
+                    type="text"
+                    placeholder="Vegetariano, celíaco, alergias, etc. (opcional)"
+                    value={restricciones}
+                    onChange={(e) => setRestricciones(e.target.value)}
+                    className="mt-2 w-full border-b border-principal/30 bg-transparent py-2 font-body text-[26px] text-principal outline-none placeholder:text-principal/40 focus-visible:border-dorado"
                   />
                 </div>
               )}
-
-              <div>
-                <label
-                  htmlFor="mensaje"
-                  className="font-display text-[20px] tracking-widest text-principal/70"
-                >
-                  MENSAJE PARA LOS NOVIOS (OPCIONAL)
-                </label>
-                <textarea
-                  id="mensaje"
-                  rows={3}
-                  value={mensaje}
-                  onChange={(e) => setMensaje(e.target.value)}
-                  className="mt-2 w-full resize-none border-b border-principal/30 bg-transparent py-2 font-body text-[26px] text-principal outline-none focus-visible:border-dorado"
-                />
-              </div>
 
               <button
                 type="submit"
                 disabled={!asistencia}
                 className="w-full bg-principal py-4 font-display text-[20px] tracking-widest2 text-blanco transition-colors hover:bg-principal2 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
               >
-                CONFIRMAR ASISTENCIA
+                CONFIRMAR 
               </button>
             </form>
           )}
