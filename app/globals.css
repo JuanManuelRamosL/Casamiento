@@ -47,7 +47,7 @@ html {
 }
 
 body {
-  background-color: var(--color-secundario);
+  background-color: #fff;
   color: var(--color-principal);
   font-family: var(--font-body), serif;
   -webkit-font-smoothing: antialiased;
@@ -61,6 +61,9 @@ textarea:focus-visible {
   outline-offset: 3px;
 }
 
+/* ============================================================
+ * EFECTOS DE GRANO
+ * ============================================================ */
 .grain {
   position: relative;
   isolation: isolate;
@@ -78,6 +81,26 @@ textarea:focus-visible {
   background-repeat: repeat;
 }
 
+.grain-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.grain-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='1.4' intercept='-0.1'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-repeat: repeat;
+}
+
+/* ============================================================
+ * ELEMENTOS DECORATIVOS
+ * ============================================================ */
 .hairline {
   height: 1px;
   background: linear-gradient(
@@ -96,137 +119,9 @@ textarea:focus-visible {
   display: inline-block;
 }
 
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition:
-    opacity 0.9s ease,
-    transform 0.9s ease;
-}
-
-.reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-}
-
-.tabular {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Degradé del hero: fallback con muchos stops + versión oklch
-   (perceptualmente uniforme, evita la franja/corte visible) */
-.hero-gradient {
-  background: linear-gradient(
-    to bottom,
-    #08192e 0%,
-    #0c2138 14%,
-    #102948 26%,
-    #1d3b5e 38%,
-    #35547a 50%,
-    #5b7796 64%,
-    #94a8bb 78%,
-    #d3dce4 90%,
-    #ffffff 100%
-  );
-}
-
-.fondo-prueba {
-  background: linear-gradient(
-    to bottom,
-    #08192e 0%,
-    #0c2138 14%,
-    #102948 26%,
-    #1d3b5e 38%,
-    #35547a 50%,
-    #5b7796 64%,
-    #94a8bb 78%,
-    #d3dce4 90%,
-    #ffffff 100%
-  );
-}
-
-@supports (background: linear-gradient(in oklch, red, blue)) {
-  .hero-gradient {
-    background: linear-gradient(
-      to bottom in oklch,
-      #08192e 0%,
-      #102948 28%,
-      #35547a 55%,
-      #94a8bb 80%,
-      #ffffff 100%
-    );
-  }
-}
-
-/* ---------------------------------------------------------------------
- * Caligrafía: revela el texto de izquierda a derecha, como si una
- * pluma lo estuviera escribiendo. Se usa en los nombres del hero.
- * ------------------------------------------------------------------ */
-.write-in {
-  display: inline-block;
-  opacity: 0;
-  clip-path: inset(0 100% 0 0);
-  animation-name: write-in-anim;
-  animation-duration: 1.1s;
-  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
-  animation-fill-mode: forwards;
-  animation-delay: 0s;
-}
-
-@keyframes write-in-anim {
-  0% {
-    opacity: 0;
-    clip-path: inset(0 100% 0 0);
-  }
-  12% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-    clip-path: inset(0 0% 0 0);
-  }
-}
-
-/* Fade simple para textos que acompañan a la caligrafía (no cursivos) */
-.fade-in-up {
-  opacity: 0;
-  transform: translateY(10px);
-  animation-name: fade-in-up-anim;
-  animation-duration: 0.8s;
-  animation-timing-function: ease-out;
-  animation-fill-mode: forwards;
-  animation-delay: 0s;
-}
-
-@keyframes fade-in-up-anim {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .write-in,
-  .fade-in-up {
-    animation: none;
-    opacity: 1;
-    clip-path: none;
-    transform: none;
-  }
-}
-
-/* ---------------------------------------------------------------------
- * Brillo dorado: un destello de luz recorre las líneas divisorias
- * cada tanto, como el reflejo en una lámina de oro.
- * ------------------------------------------------------------------ */
+/* ============================================================
+ * SHIMMER - Brillo dorado en líneas divisorias
+ * ============================================================ */
 .shimmer-line {
   position: relative;
   overflow: hidden;
@@ -265,10 +160,9 @@ textarea:focus-visible {
   }
 }
 
-/* ---------------------------------------------------------------------
- * Flip de la cuenta regresiva: cada dígito gira sobre su eje al
- * cambiar, como un reloj de estación vintage.
- * ------------------------------------------------------------------ */
+/* ============================================================
+ * FLIP - Cuenta regresiva
+ * ============================================================ */
 .flip-digit {
   display: inline-block;
   transform-origin: 50% 60%;
@@ -295,39 +189,201 @@ textarea:focus-visible {
   }
 }
 
-/* Grano más marcado, reservado para el hero (fondo principal de portada).
-   Grano un poco más grueso y con más presencia, como en la referencia. */
-.grain-hero {
-  position: relative;
-  isolation: isolate;
+/* ============================================================
+ * CALIGRAFÍA - Efecto de escritura
+ * ============================================================ */
+.write-in {
+  display: inline-block;
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+  animation-name: write-in-anim;
+  animation-duration: 1.1s;
+  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  animation-fill-mode: forwards;
+  animation-delay: 0s;
 }
 
-.grain-hero::before {
+@keyframes write-in-anim {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0% 0 0);
+  }
+}
+
+/* Fade simple para textos que acompañan a la caligrafía */
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(10px);
+  animation-name: fade-in-up-anim;
+  animation-duration: 0.8s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  animation-delay: 0s;
+}
+
+@keyframes fade-in-up-anim {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .write-in,
+  .fade-in-up {
+    animation: none;
+    opacity: 1;
+    clip-path: none;
+    transform: none;
+  }
+}
+
+/* ============================================================
+ * CARD GLOW - Efecto de brillo en tarjetas
+ * ============================================================ */
+.card-glow {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-glow::before {
   content: "";
   position: absolute;
-  inset: 0;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(213, 176, 55, 0.08) 0%,
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.5;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='1.4' intercept='-0.1'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  background-repeat: repeat;
 }
 
-.prueba {
-  /* background-color: #f7edd4; */
-  /* background-color: #014e5d; */
-  background-color: #102948;
-  /* #efe4c9 */
+.card-glow:hover::before {
+  opacity: 1;
 }
 
-.texto-prueba {
+.card-glow > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================================================
+ * ANIMACIONES ADICIONALES
+ * ============================================================ */
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.4s ease forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease forwards;
+}
+
+/* ============================================================
+ * FORMULARIOS
+ * ============================================================ */
+.form-group {
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--color-dorado);
+}
+
+/* ============================================================
+ * FONDOS
+ * ============================================================ */
+.hero-gradient {
+  background: linear-gradient(
+    to bottom,
+    #08192e 0%,
+    #0c2138 14%,
+    #102948 26%,
+    #1d3b5e 38%,
+    #35547a 50%,
+    #5b7796 64%,
+    #94a8bb 78%,
+    #eef3f8 100%
+  );
+}
+
+.fondo-prueba {
+  background: linear-gradient(
+    to bottom,
+    #08192e 0%,
+    #0c2138 14%,
+    #102948 26%,
+    #1d3b5e 38%,
+    #35547a 50%,
+    #5b7796 64%,
+    #94a8bb 78%,
+    #eef3f8 100%
+  );
+}
+
+@supports (background: linear-gradient(in oklch, red, blue)) {
+  .hero-gradient {
+    background: linear-gradient(
+      to bottom in oklch,
+      #08192e 0%,
+      #102948 28%,
+      #35547a 55%,
+      #94a8bb 80%,
+      #eef3f8 100%
+    );
+  }
+}
+
+.container-reloj {
+  background-color: var(--color-principal);
+}
+
+.texto-reloj {
   font-family: var(--font-display);
   font-size: 25px;
   letter-spacing: 0.2em;
   color: var(--color-dorado);
 }
 
-.sections {
-  /* background-color: #fff; */
+/* ============================================================
+ * UTILIDADES
+ * ============================================================ */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
