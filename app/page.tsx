@@ -1,18 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 /* -------------------------------------------------------------------------
  * Fecha del casamiento. Se usa para la cuenta regresiva.
- * Ajustar zona horaria / hora de la ceremonia cuando esté confirmada.
  * ---------------------------------------------------------------------- */
 const WEDDING_DATE = new Date("2026-11-15T19:00:00-03:00");
 
 /* -------------------------------------------------------------------------
  * Reveal: envuelve una sección y le agrega un fade-up cuando entra en
- * pantalla. Respeta prefers-reduced-motion (ver globals.css).
- * Cuando dividamos en componentes, esto pasa a components/Reveal.tsx
+ * pantalla.
  * ---------------------------------------------------------------------- */
 function Reveal({
   children,
@@ -52,7 +49,6 @@ function Reveal({
 
 /* -------------------------------------------------------------------------
  * useCountdown: cuenta regresiva hasta la fecha del casamiento.
- * Se calcula solo en el cliente para evitar desfasajes de hidratación.
  * ---------------------------------------------------------------------- */
 function useCountdown(target: Date) {
   const [timeLeft, setTimeLeft] = useState<{
@@ -80,8 +76,7 @@ function useCountdown(target: Date) {
 }
 
 /* -------------------------------------------------------------------------
- * Divisor ornamental: línea dorada + rombo, motivo que se repite
- * a lo largo de toda la página como firma visual del diseño.
+ * Divisor ornamental
  * ---------------------------------------------------------------------- */
 function Divider({ tone = "dorado" }: { tone?: "dorado" | "principal" }) {
   const lineColor = tone === "dorado" ? "shimmer-line" : "bg-principal/40";
@@ -97,10 +92,7 @@ function Divider({ tone = "dorado" }: { tone?: "dorado" | "principal" }) {
 }
 
 /* -------------------------------------------------------------------------
- * FlipUnit: un número de la cuenta regresiva que gira sobre su eje
- * cada vez que cambia, como un reloj de estación vintage. El truco es
- * usar `key={display}` para que React remonte el <span> en cada
- * cambio de valor, lo que reinicia la animación CSS automáticamente.
+ * FlipUnit: número de la cuenta regresiva
  * ---------------------------------------------------------------------- */
 function FlipUnit({ value, label }: { value?: number; label: string }) {
   const display = value !== undefined ? String(value).padStart(2, "0") : "--";
@@ -122,105 +114,297 @@ function FlipUnit({ value, label }: { value?: number; label: string }) {
   );
 }
 
-/* Clase reutilizable para los rótulos "eyebrow" en mayúsculas */
-const EYEBROW = "c";
-
-const GALLERY_IMAGES = [
-  "/images/gallery-1.jpg",
-  "/images/gallery-2.jpg",
-  "/images/gallery-3.jpg",
-  "/images/gallery-4.jpg",
-  "/images/imagen1.jpeg",
-  "/images/imagen2.jpeg",
-  "/images/pelo.jpeg",
-  "/images/portada.jpeg",
-];
+/* Clase reutilizable para los rótulos "eyebrow" */
+const EYEBROW = "font-display text-[16px] tracking-widest2";
 
 /* -------------------------------------------------------------------------
- * PhotoGallery: carrusel que avanza una foto cada 3s. Para el loop
- * infinito se agrega una copia de la primera foto al final; al llegar
- * a esa copia se salta a la foto 0 sin transición (truco clásico de
- * carrusel infinito) para que nunca se note el reinicio.
+ * GALERÍA DE IMÁGENES - 3 imágenes
+ * ---------------------------------------------------------------------- */
+const GALLERY_IMAGES = ["/images/1.jpg", "/images/2.jpg", "/images/3.jpg"];
+
+/* -------------------------------------------------------------------------
+ * PhotoGallery: Carrusel horizontal con estilo mazo de cartas
  * ---------------------------------------------------------------------- */
 function PhotoGallery() {
   const total = GALLERY_IMAGES.length;
-  const slides = [...GALLERY_IMAGES, GALLERY_IMAGES[0]];
-  const [index, setIndex] = useState(0);
-  const [instant, setInstant] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [direction, setDirection] = useState<"left" | "right">("right");
 
+  // Auto-play
   useEffect(() => {
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     if (reduceMotion) return;
-    const id = setInterval(() => setIndex((i) => i + 1), 3000);
+
+    const id = setInterval(() => {
+      if (!isAnimating) {
+        goToNext();
+      }
+    }, 4000);
     return () => clearInterval(id);
-  }, []);
+  }, [isAnimating]);
 
-  useEffect(() => {
-    if (index !== total) return;
-    const timeout = setTimeout(() => {
-      setInstant(true);
-      setIndex(0);
-    }, 700);
-    return () => clearTimeout(timeout);
-  }, [index, total]);
+  const goToNext = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setDirection("right");
+    const nextIndex = (currentIndex + 1) % total;
 
-  useEffect(() => {
-    if (!instant) return;
-    const id = requestAnimationFrame(() => setInstant(false));
-    return () => cancelAnimationFrame(id);
-  }, [instant]);
+    setTimeout(() => {
+      setCurrentIndex(nextIndex);
+      setIsAnimating(false);
+    }, 500);
+  };
+
+  const goToPrev = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setDirection("left");
+    const prevIndex = (currentIndex - 1 + total) % total;
+
+    setTimeout(() => {
+      setCurrentIndex(prevIndex);
+      setIsAnimating(false);
+    }, 500);
+  };
+
+  const goToCard = (index: number) => {
+    if (isAnimating || index === currentIndex) return;
+    if (index > currentIndex) {
+      goToNext();
+    } else {
+      goToPrev();
+    }
+  };
+
+  // Obtener las 3 cartas visibles
+  const getVisibleCards = () => {
+    const prev = (currentIndex - 1 + total) % total;
+    const next = (currentIndex + 1) % total;
+    return [prev, currentIndex, next];
+  };
+
+  // Rotación para cada carta (fija por índice)
+  const getRotation = (index: number) => {
+    const rotations = [-3, 0, 3];
+    const pos = index % rotations.length;
+    return rotations[pos];
+  };
+
+  const visibleCards = getVisibleCards();
 
   return (
-    <div className="relative mx-auto max-w-xl overflow-hidden rounded-sm border border-dorado/30 bg-blanco/60">
-      <div
-        className="flex"
-        style={{
-          transform: `translateX(-${index * 100}%)`,
-          transition: instant ? "none" : "transform 0.7s ease",
-        }}
-      >
-        {slides.map((src, i) => (
-          <div
-            key={i}
-            className="relative aspect-4/5 w-full shrink-0 sm:aspect-16/10"
+    <div className="relative mx-auto max-w-2xl overflow-hidden">
+      {/* Contenedor principal */}
+      <div className="relative h-[460px] w-full sm:h-[540px] flex items-center justify-center">
+        {visibleCards.map((cardIndex) => {
+          const isCurrent = cardIndex === currentIndex;
+          const rotation = getRotation(cardIndex);
+
+          // Calcular el desplazamiento horizontal basado en la posición
+          let translateX = 0;
+          // Usar valores relativos para mejor adaptación en mobile
+          const cardWidth = 300; // Ancho base de la carta
+          const gap = 20; // Gap base
+
+          if (cardIndex === currentIndex) {
+            translateX = 0;
+          } else if (
+            cardIndex === (currentIndex + 1) % total ||
+            (cardIndex === 0 && currentIndex === total - 1)
+          ) {
+            translateX = cardWidth + gap;
+          } else {
+            translateX = -(cardWidth + gap);
+          }
+
+          // Durante la animación, mover las cartas
+          if (isAnimating) {
+            const moveAmount = (cardWidth + gap) * 0.5;
+            if (direction === "right") {
+              if (cardIndex === currentIndex) {
+                translateX = -moveAmount;
+              } else if (cardIndex === (currentIndex + 1) % total) {
+                translateX = cardWidth + gap - moveAmount;
+              } else {
+                translateX = -(cardWidth + gap) - moveAmount;
+              }
+            } else {
+              if (cardIndex === currentIndex) {
+                translateX = moveAmount;
+              } else if (cardIndex === (currentIndex - 1 + total) % total) {
+                translateX = -(cardWidth + gap) + moveAmount;
+              } else {
+                translateX = cardWidth + gap + moveAmount;
+              }
+            }
+          }
+
+          // Escala y opacidad
+          const scale = isCurrent ? 1 : 0.9;
+          const opacity = isCurrent ? 1 : 0.6;
+
+          // Sombra
+          let shadow = "0 8px 30px rgba(0,0,0,0.12)";
+          if (isCurrent && !isAnimating) {
+            shadow =
+              "0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(213,176,55,0.15)";
+          }
+
+          // Z-index
+          const zIndex = isCurrent ? 10 : 5;
+
+          // Transform final
+          const transform = `translateX(${translateX}px) rotate(${rotation}deg) scale(${scale})`;
+
+          // Calcular el ancho de la carta según el viewport
+          const cardWidthClass = "w-[280px] sm:w-[340px] md:w-[380px]";
+
+          return (
+            <div
+              key={`card-${cardIndex}`}
+              className={`absolute ${cardWidthClass}`}
+              style={{
+                transform: transform,
+                zIndex: zIndex,
+                borderRadius: "16px",
+                overflow: "hidden",
+                background: "#ffffff",
+                border:
+                  isCurrent && !isAnimating
+                    ? "2px solid rgba(213,176,55,0.25)"
+                    : "1px solid rgba(213,176,55,0.08)",
+                opacity: opacity,
+                height: "92%",
+                maxHeight: "480px",
+                boxShadow: shadow,
+                pointerEvents: isCurrent && !isAnimating ? "auto" : "none",
+                transition: isAnimating
+                  ? "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease, box-shadow 0.3s ease"
+                  : "transform 0.4s ease, opacity 0.4s ease, box-shadow 0.3s ease",
+                willChange: "transform, opacity",
+                left: "50%",
+                // Centrar perfectamente usando transform con translateX
+                transform: `${transform} translateX(-50%)`,
+                cursor: isCurrent && !isAnimating ? "pointer" : "default",
+              }}
+              onClick={() => {
+                if (isCurrent && !isAnimating) {
+                  goToNext();
+                }
+              }}
+            >
+              <div className="relative w-full h-full">
+                <img
+                  src={GALLERY_IMAGES[cardIndex]}
+                  alt={`Foto ${cardIndex + 1}`}
+                  className="w-full h-full object-cover"
+                  loading={cardIndex === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
+                />
+
+                {/* Indicador de número */}
+                <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">
+                  <span className="text-white text-[11px] font-display tracking-wider">
+                    {cardIndex + 1} / {total}
+                  </span>
+                </div>
+
+                {/* Overlay sutil en la imagen actual */}
+                {isCurrent && !isAnimating && (
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/5 via-transparent to-transparent" />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Controles */}
+      <div className="mt-8 flex items-center justify-center gap-4">
+        <button
+          onClick={goToPrev}
+          disabled={isAnimating}
+          className="p-3 rounded-full border border-dorado/30 text-principal hover:bg-dorado hover:text-principal transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Anterior"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <Image
-              src={src}
-              alt={`Foto ${(i % total) + 1} de Evelyn y Juanma`}
-              fill
-              sizes="(min-width: 640px) 576px, 100vw"
-              className="object-cover"
-              priority={i === 0}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
             />
-          </div>
-        ))}
+          </svg>
+        </button>
+
+        <div className="flex gap-2">
+          {GALLERY_IMAGES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goToCard(i)}
+              className={`
+                h-2 rounded-full transition-all duration-300
+                ${
+                  i === currentIndex
+                    ? "bg-dorado w-6"
+                    : "bg-dorado/25 w-2 hover:bg-dorado/50"
+                }
+              `}
+              aria-label={`Ir a foto ${i + 1}`}
+            />
+          ))}
+        </div>
+
+        <button
+          onClick={goToNext}
+          disabled={isAnimating}
+          className="p-3 rounded-full border border-dorado/30 text-principal hover:bg-dorado hover:text-principal transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Siguiente"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
       </div>
-      <div className="absolute bottom-4 left-0 flex w-full justify-center gap-2">
-        {GALLERY_IMAGES.map((_, i) => (
-          <span
-            key={i}
-            className={`h-1.5 w-1.5 rounded-full transition-colors ${
-              index % total === i ? "bg-dorado" : "bg-blanco/50"
-            }`}
-          />
-        ))}
-      </div>
+
+      <p className="mt-4 text-center text-xs text-principal/40 font-display tracking-wider">
+        Haz clic en la foto para avanzar
+      </p>
     </div>
   );
 }
 
+/* ============================================================
+ * PÁGINA PRINCIPAL
+ * ============================================================ */
 export default function Home() {
   const countdown = useCountdown(WEDDING_DATE);
 
-  /* RSVP: estado local del formulario. Todavía no hay backend
-   * conectado, así que por ahora solo confirmamos en pantalla. */
   const [asistencia, setAsistencia] = useState<"si" | "no" | "">("");
   const [nombre, setNombre] = useState("");
-  const [acompanantes, setAcompanantes] = useState("0");
   const [restricciones, setRestricciones] = useState("");
-  const [mensaje, setMensaje] = useState("");
   const [enviado, setEnviado] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
@@ -231,7 +415,11 @@ export default function Home() {
   return (
     <main className="overflow-x-hidden bg-secundario">
       {/* ================= HERO ================= */}
-      <section className="hero-gradient fondo-prueba grain-hero relative flex min-h-[100svh] flex-col items-center justify-center px-6 py-24 text-center">
+      <section
+        className="relative flex min-h-[100svh] flex-col items-center justify-center px-6 py-24 text-center bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/images/Hero.jpeg')" }}
+      >
+        <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-[2] flex w-full max-w-2xl flex-col items-center">
           <p
             className="fade-in-up font-display text-[17px] tracking-widest2 text-dorado sm:text-[20px]"
@@ -276,9 +464,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= BIENVENIDA / CITA ================= */}
+      {/* ================= BIENVENIDA ================= */}
       <Reveal>
-        <section className="mx-auto max-w-2xl px-6 py-24 text-center sm:py-28 sections">
+        <section className="mx-auto max-w-2xl px-6 py-24 text-center sm:py-28">
           <p className="font-body text-[32px] italic leading-relaxed text-principal sm:text-[38px]">
             Nos casamos y queremos que seas parte de este día.
           </p>
@@ -290,14 +478,19 @@ export default function Home() {
 
       {/* ================= CUENTA REGRESIVA ================= */}
       <Reveal>
-        <section className="prueba relative px-6 py-20 text-center sm:py-24">
-          {/* <p className={EYEBROW}>FALTA POCO</p> */}
-          <p className="texto-prueba">FALTA POCO</p>
-          <div className="relative z-[2] mx-auto mt-8 grid max-w-md grid-cols-4 gap-3 sm:gap-6">
-            <FlipUnit value={countdown?.days} label="Días" />
-            <FlipUnit value={countdown?.hours} label="Horas" />
-            <FlipUnit value={countdown?.minutes} label="Min" />
-            <FlipUnit value={countdown?.seconds} label="Seg" />
+        <section
+          className="relative px-6 py-20 text-center sm:py-24 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/images/Reloj.jpeg')" }}
+        >
+          <div className="absolute inset-0 bg-principal/70" />
+          <div className="relative z-[2]">
+            <p className="texto-reloj">FALTA POCO</p>
+            <div className="relative z-[2] mx-auto mt-8 grid max-w-md grid-cols-4 gap-3 sm:gap-6">
+              <FlipUnit value={countdown?.days} label="Días" />
+              <FlipUnit value={countdown?.hours} label="Horas" />
+              <FlipUnit value={countdown?.minutes} label="Min" />
+              <FlipUnit value={countdown?.seconds} label="Seg" />
+            </div>
           </div>
         </section>
       </Reveal>
@@ -313,7 +506,6 @@ export default function Home() {
           </div>
 
           <div className="mt-14 grid gap-8 sm:mt-16 sm:grid-cols-2 sm:gap-10">
-            {/* Ceremonia */}
             <div className="rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center">
               <p className="font-display text-[22px] tracking-widest2 text-principal">
                 Jano's Bella vista 1
@@ -322,58 +514,33 @@ export default function Home() {
                 <Divider />
               </div>
               <p className="font-body text-[28px] text-principal">
-               Corrientes 1682, Provincia de Buenos Aires
+                Corrientes 1682, Provincia de Buenos Aires
               </p>
               <p className="mt-2 font-body text-[24px] text-principal/70">
                 16:30 hs
               </p>
-          
             </div>
 
-            {/* Fiesta */}
-       
+            <div className="rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center">
+              <p className="font-display text-[22px] tracking-widest2 text-principal">
+                FIESTA
+              </p>
+              <div className="mx-auto my-5 w-10">
+                <Divider />
+              </div>
+              <p className="font-body text-[28px] text-principal">
+                Estancia La Candelaria
+              </p>
+              <p className="mt-2 font-body text-[24px] text-principal/70">
+                20:30 hs
+              </p>
+              <p className="font-body text-[24px] text-principal/70">
+                Ruta 2, km 68, Buenos Aires
+              </p>
+            </div>
           </div>
         </section>
       </Reveal>
-
-      {/* ================= ITINERARIO ================= */}
-      {/* <Reveal>
-        <section className="grain relative bg-principal px-6 py-24 sm:py-28">
-          <div className="relative z-[2] mx-auto max-w-xl text-center">
-            <p className={EYEBROW}>ITINERARIO</p>
-            <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-blanco sm:text-[56px]">
-              Cómo va a ser el día
-            </h2>
-
-            <div className="mt-14 space-y-10 text-left sm:mt-16">
-              {[
-                { hora: "19:00", detalle: "Ceremonia religiosa" },
-                { hora: "20:30", detalle: "Recepción y brindis" },
-                { hora: "21:30", detalle: "Cena" },
-                { hora: "23:00", detalle: "Fiesta" },
-                { hora: "05:00", detalle: "Última canción" },
-              ].map((item, i, arr) => (
-                <div key={item.hora} className="flex gap-6">
-                  <div className="flex flex-col items-center">
-                    <span className="mark-diamond" />
-                    {i !== arr.length - 1 && (
-                      <span className="mt-2 h-full w-px flex-1 bg-dorado/30" />
-                    )}
-                  </div>
-                  <div className="pb-2">
-                    <p className="font-display text-[22px] tracking-widest text-dorado-claro">
-                      {item.hora}
-                    </p>
-                    <p className="mt-1 font-body text-[26px] text-blanco/90">
-                      {item.detalle}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </Reveal> */}
 
       {/* ================= CÓDIGO DE VESTIMENTA ================= */}
       <Reveal>
@@ -386,17 +553,20 @@ export default function Home() {
             <Divider />
           </div>
           <p className="mx-auto max-w-md font-body text-[26px] leading-relaxed text-principal/80">
-Queremos que nos acompañen en esta noche tan especial luciendo sus mejores galas. 
-
-Evitando la gama de azules y celestes que estarán reservados para la pareja. 💙
+            Queremos que nos acompañen en esta noche tan especial luciendo sus
+            mejores galas.
+            <br />
+            <br />
+            Evitando la gama de azules y celestes que estarán reservados para la
+            pareja. 💙
           </p>
         </section>
       </Reveal>
 
-      {/* ================= GALERÍA DE FOTOS ================= */}
+      {/* ================= GALERÍA ================= */}
       <Reveal>
         <section className="mx-auto max-w-xl px-6 py-24 text-center sm:py-28">
-          <p className={EYEBROW}></p>
+          <p className={EYEBROW}>GALERÍA</p>
           <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
             Nosotros
           </h2>
@@ -407,19 +577,21 @@ Evitando la gama de azules y celestes que estarán reservados para la pareja. �
         </section>
       </Reveal>
 
-      {/* ================= MESA DE REGALOS ================= */}
+      {/* ================= REGALOS ================= */}
       <Reveal>
         <section className="grain relative bg-principal px-6 py-24 text-center sm:py-28">
           <div className="relative z-[2] mx-auto max-w-xl">
             <p className={EYEBROW}>REGALOS</p>
             <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-blanco sm:text-[56px]">
-             Regalos
+              Regalos
             </h2>
             <div className="mx-auto my-8 w-10">
               <Divider />
             </div>
             <p className="mx-auto max-w-md font-body text-[26px] leading-relaxed text-blanco/80">
-           Si querés colaborar con un regalo, podés hacerlo con dinero para ayudarnos a cumplir nuestro sueño de la luna de miel. De preferencia en efectivo.
+              Si querés colaborar con un regalo, podés hacerlo con dinero para
+              ayudarnos a cumplir nuestro sueño de la luna de miel. De
+              preferencia en efectivo.
             </p>
             <button className="mt-8 border border-dorado px-8 py-3 font-display text-[20px] tracking-widest2 text-dorado-claro transition-colors hover:bg-dorado hover:text-principal">
               VER DATOS BANCARIOS
@@ -523,10 +695,58 @@ Evitando la gama de azules y celestes que estarán reservados para la pareja. �
                 disabled={!asistencia}
                 className="w-full bg-principal py-4 font-display text-[20px] tracking-widest2 text-blanco transition-colors hover:bg-principal2 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
               >
-                CONFIRMAR 
+                CONFIRMAR
               </button>
             </form>
           )}
+        </section>
+      </Reveal>
+
+      {/* ================= VERSÍCULO BÍBLICO ================= */}
+      <Reveal>
+        <section
+          className="relative px-6 text-center bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: "url('/images/Biblia.jpeg')",
+            paddingTop: "6rem",
+            paddingBottom: "6rem",
+            minHeight: "70vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {/* Degradé superior: de secundario a transparente */}
+          <div
+            className="absolute inset-x-0 top-0 h-32 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(to bottom, #eef3f8 0%, transparent 100%)",
+            }}
+          />
+          {/* Degradé inferior: de transparente a principal */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-32 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(to top, #102948 0%, transparent 100%)",
+            }}
+          />
+          {/* Overlay oscuro sobre la imagen */}
+          <div className="absolute inset-0 bg-black/40" />
+
+          <div className="relative z-[2] mx-auto max-w-2xl">
+            <p className="font-body text-[28px] italic leading-relaxed text-blanco sm:text-[34px]">
+              “Y sobre todas estas cosas vestíos de amor, que es el vínculo
+              perfecto.”
+            </p>
+            <p className="mt-4 font-display text-[18px] tracking-widest2 text-dorado-claro">
+              Colosenses 3:14
+            </p>
+            <div className="mt-8">
+              <Divider tone="dorado" />
+            </div>
+          </div>
         </section>
       </Reveal>
 
