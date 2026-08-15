@@ -561,7 +561,7 @@ export default function Home() {
                 ¡Gracias, {nombre || "querido invitado"}!
               </p>
               <p className="mt-3 font-body text-[24px] text-principal/70">
-                Recibimos tu confirmación. Te esperamos con muchas ganas.
+                Recibimos tu confirmación. Te esperamos
               </p>
             </div>
           ) : (
