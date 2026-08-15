@@ -42,7 +42,7 @@ export default function Home() {
       <Vestimenta />
 
       <Reveal>
-        <section className="mx-auto max-w-xl px-6 py-12 text-center sm:py-14">
+        <section className="mx-auto max-w-xl px-6 py-6 text-center sm:py-14">
           <p className="font-display text-[16px] tracking-widest2">GALERÍA</p>
           <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
             Nosotros
