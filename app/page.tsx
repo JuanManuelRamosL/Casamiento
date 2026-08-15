@@ -445,23 +445,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center">
-              <p className="font-display text-[22px] tracking-widest2 text-principal">
-                FIESTA
-              </p>
-              <div className="mx-auto my-5 w-10">
-                <Divider />
-              </div>
-              <p className="font-body text-[28px] text-principal">
-                Estancia La Candelaria
-              </p>
-              <p className="mt-2 font-body text-[24px] text-principal/70">
-                20:30 hs
-              </p>
-              <p className="font-body text-[24px] text-principal/70">
-                Ruta 2, km 68, Buenos Aires
-              </p>
-            </div>
+
           </div>
         </section>
       </Reveal>
