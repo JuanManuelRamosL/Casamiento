@@ -123,275 +123,134 @@ const EYEBROW = "font-display text-[16px] tracking-widest2";
 const GALLERY_IMAGES = ["/images/1.jpg", "/images/2.jpg", "/images/3.jpg"];
 
 /* -------------------------------------------------------------------------
- * PhotoGallery: Carrusel horizontal con estilo mazo de cartas
+ * PhotoGallery: Carrusel con estilo mazo de cartas y transición simple
  * ---------------------------------------------------------------------- */
 function PhotoGallery() {
   const total = GALLERY_IMAGES.length;
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [direction, setDirection] = useState<"left" | "right">("right");
 
-  // Auto-play
+  const goToPrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? total - 1 : prev - 1));
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev === total - 1 ? 0 : prev + 1));
+  };
+
+  const goToCard = (index: number) => {
+    setCurrentIndex(index);
+  };
+
   useEffect(() => {
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     if (reduceMotion) return;
 
-    const id = setInterval(() => {
-      if (!isAnimating) {
-        goToNext();
-      }
-    }, 4000);
+    const id = setInterval(goToNext, 4000);
     return () => clearInterval(id);
-  }, [isAnimating]);
+  }, []);
 
-  const goToNext = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setDirection("right");
-    const nextIndex = (currentIndex + 1) % total;
-
-    setTimeout(() => {
-      setCurrentIndex(nextIndex);
-      setIsAnimating(false);
-    }, 500);
-  };
-
-  const goToPrev = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setDirection("left");
-    const prevIndex = (currentIndex - 1 + total) % total;
-
-    setTimeout(() => {
-      setCurrentIndex(prevIndex);
-      setIsAnimating(false);
-    }, 500);
-  };
-
-  const goToCard = (index: number) => {
-    if (isAnimating || index === currentIndex) return;
-    if (index > currentIndex) {
-      goToNext();
-    } else {
-      goToPrev();
-    }
-  };
-
-  // Obtener las 3 cartas visibles
-  const getVisibleCards = () => {
-    const prev = (currentIndex - 1 + total) % total;
-    const next = (currentIndex + 1) % total;
-    return [prev, currentIndex, next];
-  };
-
-  // Rotación para cada carta (fija por índice)
   const getRotation = (index: number) => {
-    const rotations = [-3, 0, 3];
-    const pos = index % rotations.length;
-    return rotations[pos];
+    const rotations = [-4, 0, 4, -2, 2];
+    return rotations[index % rotations.length];
   };
-
-  const visibleCards = getVisibleCards();
 
   return (
-    <div className="relative mx-auto max-w-2xl overflow-hidden">
-      {/* Contenedor principal */}
-      <div className="relative h-[460px] w-full sm:h-[540px] flex items-center justify-center">
-        {visibleCards.map((cardIndex) => {
-          const isCurrent = cardIndex === currentIndex;
-          const rotation = getRotation(cardIndex);
-
-          // Calcular el desplazamiento horizontal basado en la posición
-          let translateX = 0;
-          // Usar valores relativos para mejor adaptación en mobile
-          const cardWidth = 300; // Ancho base de la carta
-          const gap = 20; // Gap base
-
-          if (cardIndex === currentIndex) {
-            translateX = 0;
-          } else if (
-            cardIndex === (currentIndex + 1) % total ||
-            (cardIndex === 0 && currentIndex === total - 1)
-          ) {
-            translateX = cardWidth + gap;
-          } else {
-            translateX = -(cardWidth + gap);
-          }
-
-          // Durante la animación, mover las cartas
-          if (isAnimating) {
-            const moveAmount = (cardWidth + gap) * 0.5;
-            if (direction === "right") {
-              if (cardIndex === currentIndex) {
-                translateX = -moveAmount;
-              } else if (cardIndex === (currentIndex + 1) % total) {
-                translateX = cardWidth + gap - moveAmount;
-              } else {
-                translateX = -(cardWidth + gap) - moveAmount;
-              }
-            } else {
-              if (cardIndex === currentIndex) {
-                translateX = moveAmount;
-              } else if (cardIndex === (currentIndex - 1 + total) % total) {
-                translateX = -(cardWidth + gap) + moveAmount;
-              } else {
-                translateX = cardWidth + gap + moveAmount;
-              }
-            }
-          }
-
-          // Escala y opacidad
-          const scale = isCurrent ? 1 : 0.9;
-          const opacity = isCurrent ? 1 : 0.6;
-
-          // Sombra
-          let shadow = "0 8px 30px rgba(0,0,0,0.12)";
-          if (isCurrent && !isAnimating) {
-            shadow =
-              "0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(213,176,55,0.15)";
-          }
-
-          // Z-index
-          const zIndex = isCurrent ? 10 : 5;
-
-          // Transform final
-          const transform = `translateX(${translateX}px) rotate(${rotation}deg) scale(${scale})`;
-
-          // Calcular el ancho de la carta según el viewport
-          const cardWidthClass = "w-[280px] sm:w-[340px] md:w-[380px]";
-
-          return (
+    <div className="relative mx-auto max-w-2xl rounded-xl">
+      <div
+        className="flex transition-transform duration-500 ease-out"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
+        {GALLERY_IMAGES.map((src, index) => (
+          <div
+            key={index}
+            className="relative min-w-full h-[400px] sm:h-[480px] flex items-center justify-center p-4"
+          >
             <div
-              key={`card-${cardIndex}`}
-              className={`absolute ${cardWidthClass}`}
+              className="relative w-[85%] h-[90%] rounded-2xl overflow-hidden shadow-2xl border border-dorado/20"
               style={{
-                transform: transform,
-                zIndex: zIndex,
-                borderRadius: "16px",
-                overflow: "hidden",
-                background: "#ffffff",
-                border:
-                  isCurrent && !isAnimating
-                    ? "2px solid rgba(213,176,55,0.25)"
-                    : "1px solid rgba(213,176,55,0.08)",
-                opacity: opacity,
-                height: "92%",
-                maxHeight: "480px",
-                boxShadow: shadow,
-                pointerEvents: isCurrent && !isAnimating ? "auto" : "none",
-                transition: isAnimating
-                  ? "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease, box-shadow 0.3s ease"
-                  : "transform 0.4s ease, opacity 0.4s ease, box-shadow 0.3s ease",
-                willChange: "transform, opacity",
-                left: "50%",
-                // Centrar perfectamente usando transform con translateX
-                transform: `${transform} translateX(-50%)`,
-                cursor: isCurrent && !isAnimating ? "pointer" : "default",
-              }}
-              onClick={() => {
-                if (isCurrent && !isAnimating) {
-                  goToNext();
-                }
+                transform: `rotate(${getRotation(index)}deg)`,
+                boxShadow:
+                  index === currentIndex
+                    ? "0 20px 60px rgba(0,0,0,0.3)"
+                    : "0 10px 30px rgba(0,0,0,0.15)",
               }}
             >
-              <div className="relative w-full h-full">
-                <img
-                  src={GALLERY_IMAGES[cardIndex]}
-                  alt={`Foto ${cardIndex + 1}`}
-                  className="w-full h-full object-cover"
-                  loading={cardIndex === 0 ? "eager" : "lazy"}
-                  decoding="async"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = "none";
-                  }}
-                />
-
-                {/* Indicador de número */}
-                <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">
-                  <span className="text-white text-[11px] font-display tracking-wider">
-                    {cardIndex + 1} / {total}
-                  </span>
-                </div>
-
-                {/* Overlay sutil en la imagen actual */}
-                {isCurrent && !isAnimating && (
-                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/5 via-transparent to-transparent" />
-                )}
+              <img
+                src={src}
+                alt={`Foto ${index + 1}`}
+                className="w-full h-full object-cover"
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+              />
+              <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full z-10">
+                <span className="text-white text-sm font-display tracking-wider">
+                  {index + 1} / {total}
+                </span>
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
 
-      {/* Controles */}
-      <div className="mt-6 flex items-center justify-center gap-4">
-        <button
-          onClick={goToPrev}
-          disabled={isAnimating}
-          className="p-2.5 rounded-full border border-dorado/30 text-principal hover:bg-dorado hover:text-principal transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
-          aria-label="Anterior"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-
-        <div className="flex gap-2">
-          {GALLERY_IMAGES.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goToCard(i)}
-              className={`
-                h-2 rounded-full transition-all duration-300
-                ${
-                  i === currentIndex
-                    ? "bg-dorado w-6"
-                    : "bg-dorado/25 w-2 hover:bg-dorado/50"
-                }
-              `}
-              aria-label={`Ir a foto ${i + 1}`}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={goToNext}
-          disabled={isAnimating}
-          className="p-2.5 rounded-full border border-dorado/30 text-principal hover:bg-dorado hover:text-principal transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
-          aria-label="Siguiente"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </button>
+      <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-2 z-10">
+        {GALLERY_IMAGES.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goToCard(i)}
+            className={`
+              h-2 rounded-full transition-all duration-300
+              ${
+                i === currentIndex
+                  ? "bg-dorado w-6"
+                  : "bg-white/50 w-2 hover:bg-white/70"
+              }
+            `}
+            aria-label={`Ir a foto ${i + 1}`}
+          />
+        ))}
       </div>
 
-      <p className="mt-3 text-center text-xs text-principal/40 font-display tracking-wider">
-        Haz clic en la foto para avanzar
-      </p>
+      <button
+        onClick={goToPrev}
+        className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all duration-300 z-10"
+        aria-label="Anterior"
+      >
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
+      <button
+        onClick={goToNext}
+        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all duration-300 z-10"
+        aria-label="Siguiente"
+      >
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </button>
     </div>
   );
 }
@@ -416,7 +275,6 @@ function ClockSection({ children }: { children: React.ReactNode }) {
       className="relative px-6 py-16 text-center sm:py-20 overflow-hidden flex items-center justify-center"
       style={{ minHeight: "50vh", minHeight: "50dvh" }}
     >
-      {/* Imagen de fondo - SIN transform para evitar saltos */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
@@ -425,12 +283,8 @@ function ClockSection({ children }: { children: React.ReactNode }) {
           backgroundSize: "cover",
         }}
       />
-      {/* Overlay negro */}
       <div className="absolute inset-0 bg-black/50" />
-      {/* Contenido centrado */}
-      <div className="relative z-[2] w-full max-w-2xl mx-auto">
-        {children}
-      </div>
+      <div className="relative z-[2] w-full max-w-2xl mx-auto">{children}</div>
     </section>
   );
 }
@@ -445,11 +299,22 @@ export default function Home() {
   const [nombre, setNombre] = useState("");
   const [restricciones, setRestricciones] = useState("");
   const [enviado, setEnviado] = useState(false);
+  const [copied, setCopied] = useState<"cbu" | "alias" | null>(null);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setEnviado(true);
   }
+
+  const copyToClipboard = (text: string, type: "cbu" | "alias") => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(type);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  };
+
+  const cbu = "0000003100088075383446";
+  const alias = "juanmaramosl.mp";
 
   return (
     <main className="overflow-x-hidden bg-secundario">
@@ -587,7 +452,7 @@ export default function Home() {
           </div>
           <p className="mx-auto max-w-md font-body text-[26px] leading-relaxed text-principal/80">
             Queremos que nos acompañen en esta noche tan especial luciendo sus
-            mejores galas.
+            mejores vestidos de gala y trajes elegantes.
             <br />
             <br />
             Evitando la gama de azules y celestes que estarán reservados para la
@@ -622,13 +487,44 @@ export default function Home() {
               <Divider />
             </div>
             <p className="mx-auto max-w-md font-body text-[26px] leading-relaxed text-blanco/80">
-              Si querés colaborar con un regalo, podés hacerlo con dinero para
-              ayudarnos a cumplir nuestro sueño de la luna de miel. De
-              preferencia en efectivo.
+              Si desean obsequiarnos algo, agradeceremos mucho una contribución
+              en efectivo para ayudarnos a comenzar esta nueva etapa juntos.
+              Habrá sobres a disposición en la entrada del evento. ¡Gracias por
+              ser parte de nuestro futuro!
             </p>
-            <button className="mt-6 border border-dorado px-8 py-3 font-display text-[20px] tracking-widest2 text-dorado-claro transition-colors hover:bg-dorado hover:text-principal">
-              VER DATOS BANCARIOS
-            </button>
+
+            {/* Datos bancarios */}
+            <div className="mt-6 space-y-3">
+              <div className="flex flex-col sm:flex-row items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-dorado/20">
+                <span className="text-blanco/70 text-sm font-display tracking-wider">
+                  CBU:
+                </span>
+                <span className="text-blanco font-mono text-sm select-all">
+                  {cbu}
+                </span>
+                <button
+                  onClick={() => copyToClipboard(cbu, "cbu")}
+                  className="w-full sm:w-auto sm:ml-auto px-3 py-1 text-xs font-display tracking-wider text-dorado-claro border border-dorado/30 rounded hover:bg-dorado hover:text-principal transition-all duration-300"
+                >
+                  {copied === "cbu" ? "✓ COPIADO" : "COPIAR"}
+                </button>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-dorado/20">
+                <span className="text-blanco/70 text-sm font-display tracking-wider">
+                  ALIAS:
+                </span>
+                <span className="text-blanco font-mono text-sm select-all">
+                  {alias}
+                </span>
+                <button
+                  onClick={() => copyToClipboard(alias, "alias")}
+                  className="w-full sm:w-auto sm:ml-auto px-3 py-1 text-xs font-display tracking-wider text-dorado-claro border border-dorado/30 rounded hover:bg-dorado hover:text-principal transition-all duration-300"
+                >
+                  {copied === "alias" ? "✓ COPIADO" : "COPIAR"}
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       </Reveal>
@@ -749,7 +645,6 @@ export default function Home() {
             justifyContent: "center",
           }}
         >
-          {/* Degradé superior: de secundario a transparente */}
           <div
             className="absolute inset-x-0 top-0 h-16 pointer-events-none"
             style={{
@@ -757,7 +652,6 @@ export default function Home() {
                 "linear-gradient(to bottom, #eef3f8 0%, transparent 100%)",
             }}
           />
-          {/* Degradé inferior: de transparente a principal */}
           <div
             className="absolute inset-x-0 bottom-0 h-16 pointer-events-none"
             style={{
@@ -765,7 +659,6 @@ export default function Home() {
                 "linear-gradient(to top, #102948 0%, transparent 100%)",
             }}
           />
-          {/* Overlay oscuro sobre la imagen */}
           <div className="absolute inset-0 bg-black/40" />
 
           <div className="relative z-[2] mx-auto max-w-2xl">
