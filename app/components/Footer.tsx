@@ -10,9 +10,18 @@ export function Footer() {
         <div className="mx-auto my-4 w-16">
           <Divider />
         </div>
-        <p className="font-body text-[22px] tracking-wide text-blanco/60">
-          15 DE NOVIEMBRE, 2026 · BUENOS AIRES
+        <p className="font-body text-[28px] tracking-wide text-blanco/60">
+          15 DE NOVIEMBRE de 2026
         </p>
+        <br />
+        <p className="font-display text-[22px] tracking-widest2 text-blanco/60">
+          Jano's Bella vista 1
+        </p>
+        <div className="mx-auto my-5 w-10"></div>
+        <p className="font-body text-[28px] text-blanco/60">
+          Corrientes 1682, Provincia de Buenos Aires
+        </p>
+        <p className="mt-2 font-body text-[24px] text-blanco/60">16:30 hs</p>
       </div>
     </footer>
   );
