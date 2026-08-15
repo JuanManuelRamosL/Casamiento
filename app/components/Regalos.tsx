@@ -42,7 +42,7 @@ export function Regalos() {
               </span>
               <button
                 onClick={() => copyToClipboard(CBU, "cbu")}
-                className="w-full sm:w-auto sm:ml-auto px-3 py-1 text-xs font-display tracking-wider text-dorado-claro border border-dorado/30 rounded hover:bg-dorado hover:text-principal transition-all duration-300"
+                className="w-full sm:w-auto sm:ml-auto px-3 py-1 text-xs font-display tracking-wider text-dorado-claro border border-dorado/30 rounded hover:bg-dorado hover:text-principal hover:cursor-pointer transition-all duration-300"
               >
                 {copied === "cbu" ? "✓ COPIADO" : "COPIAR"}
               </button>
@@ -57,7 +57,7 @@ export function Regalos() {
               </span>
               <button
                 onClick={() => copyToClipboard(ALIAS, "alias")}
-                className="w-full sm:w-auto sm:ml-auto px-3 py-1 text-xs font-display tracking-wider text-dorado-claro border border-dorado/30 rounded hover:bg-dorado hover:text-principal transition-all duration-300"
+                className="w-full sm:w-auto sm:ml-auto px-3 py-1 text-xs font-display tracking-wider text-dorado-claro border border-dorado/30 rounded hover:bg-dorado hover:text-principal hover:cursor-pointer transition-all duration-300"
               >
                 {copied === "alias" ? "✓ COPIADO" : "COPIAR"}
               </button>
