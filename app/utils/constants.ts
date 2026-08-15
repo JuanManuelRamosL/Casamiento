@@ -7,6 +7,8 @@ export const GALLERY_IMAGES = [
   "/images/4.jpeg",
   "/images/5.jpeg",
   "/images/6.jpeg",
+  "/images/7.jpeg",
+  "/images/8.jpeg"
 ];
 
 export const CBU = "0000003100088075383446";
