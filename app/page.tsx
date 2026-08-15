@@ -23,8 +23,10 @@ export default function Home() {
     <main className="overflow-x-hidden bg-secundario">
       <Hero />
 
+      {/* Bienvenida - YA TIENE Reveal dentro */}
       <Bienvenida />
 
+      {/* Cuenta Regresiva - ENVUELTA en Reveal */}
       <Reveal>
         <ClockSection>
           <p className="texto-reloj">FALTA POCO</p>
@@ -37,11 +39,13 @@ export default function Home() {
         </ClockSection>
       </Reveal>
 
+      {/* Celebracion - YA TIENE Reveal dentro */}
       <Celebracion />
 
+      {/* Vestimenta - YA TIENE Reveal dentro */}
       <Vestimenta />
 
-      {/* ================= GALERÍA ================= */}
+      {/* Galería - ENVUELTA en Reveal */}
       <Reveal>
         <section className="mx-auto max-w-xl px-6 py-4 text-center sm:py-6">
           <p className="font-display text-[12px] tracking-widest2 text-principal/50">
@@ -57,10 +61,13 @@ export default function Home() {
         </section>
       </Reveal>
 
+      {/* Regalos - YA TIENE Reveal dentro */}
       <Regalos />
 
+      {/* Rsvp - YA TIENE Reveal dentro */}
       <Rsvp />
 
+      {/* Versiculo - YA TIENE Reveal dentro */}
       <Versiculo />
 
       <Footer />
