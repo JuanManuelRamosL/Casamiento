@@ -327,11 +327,11 @@ function PhotoGallery() {
       </div>
 
       {/* Controles */}
-      <div className="mt-8 flex items-center justify-center gap-4">
+      <div className="mt-6 flex items-center justify-center gap-4">
         <button
           onClick={goToPrev}
           disabled={isAnimating}
-          className="p-3 rounded-full border border-dorado/30 text-principal hover:bg-dorado hover:text-principal transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="p-2.5 rounded-full border border-dorado/30 text-principal hover:bg-dorado hover:text-principal transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label="Anterior"
         >
           <svg
@@ -370,7 +370,7 @@ function PhotoGallery() {
         <button
           onClick={goToNext}
           disabled={isAnimating}
-          className="p-3 rounded-full border border-dorado/30 text-principal hover:bg-dorado hover:text-principal transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="p-2.5 rounded-full border border-dorado/30 text-principal hover:bg-dorado hover:text-principal transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label="Siguiente"
         >
           <svg
@@ -389,10 +389,49 @@ function PhotoGallery() {
         </button>
       </div>
 
-      <p className="mt-4 text-center text-xs text-principal/40 font-display tracking-wider">
+      <p className="mt-3 text-center text-xs text-principal/40 font-display tracking-wider">
         Haz clic en la foto para avanzar
       </p>
     </div>
+  );
+}
+
+/* -------------------------------------------------------------------------
+ * Componente: ClockSection - Sección del reloj con imagen de fondo fija
+ * ---------------------------------------------------------------------- */
+function ClockSection({ children }: { children: React.ReactNode }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  return (
+    <section
+      className="relative px-6 py-16 text-center sm:py-20 overflow-hidden flex items-center justify-center"
+      style={{ minHeight: "50vh", minHeight: "50dvh" }}
+    >
+      {/* Imagen de fondo - SIN transform para evitar saltos */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('/images/Reloj.jpeg')",
+          backgroundPosition: isMobile ? "center 30%" : "center",
+          backgroundSize: "cover",
+        }}
+      />
+      {/* Overlay negro */}
+      <div className="absolute inset-0 bg-black/50" />
+      {/* Contenido centrado */}
+      <div className="relative z-[2] w-full max-w-2xl mx-auto">
+        {children}
+      </div>
+    </section>
   );
 }
 
@@ -416,7 +455,7 @@ export default function Home() {
     <main className="overflow-x-hidden bg-secundario">
       {/* ================= HERO ================= */}
       <section
-        className="relative flex min-h-[100svh] flex-col items-center justify-center px-6 py-24 text-center bg-cover bg-center bg-no-repeat"
+        className="relative flex min-h-[100svh] flex-col items-center justify-center px-6 py-12 text-center bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/images/Hero.jpeg')" }}
       >
         <div className="absolute inset-0 bg-black/40" />
@@ -466,7 +505,7 @@ export default function Home() {
 
       {/* ================= BIENVENIDA ================= */}
       <Reveal>
-        <section className="mx-auto max-w-2xl px-6 py-24 text-center sm:py-28">
+        <section className="mx-auto max-w-2xl px-6 py-12 text-center sm:py-14">
           <p className="font-body text-[32px] italic leading-relaxed text-principal sm:text-[38px]">
             Nos casamos y queremos que seas parte de este día.
           </p>
@@ -478,26 +517,20 @@ export default function Home() {
 
       {/* ================= CUENTA REGRESIVA ================= */}
       <Reveal>
-        <section
-          className="relative px-6 py-20 text-center sm:py-24 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/images/Reloj.jpeg')" }}
-        >
-          <div className="absolute inset-0 bg-principal/70" />
-          <div className="relative z-[2]">
-            <p className="texto-reloj">FALTA POCO</p>
-            <div className="relative z-[2] mx-auto mt-8 grid max-w-md grid-cols-4 gap-3 sm:gap-6">
-              <FlipUnit value={countdown?.days} label="Días" />
-              <FlipUnit value={countdown?.hours} label="Horas" />
-              <FlipUnit value={countdown?.minutes} label="Min" />
-              <FlipUnit value={countdown?.seconds} label="Seg" />
-            </div>
+        <ClockSection>
+          <p className="texto-reloj">FALTA POCO</p>
+          <div className="relative z-[2] mx-auto mt-6 grid max-w-md grid-cols-4 gap-3 sm:gap-6">
+            <FlipUnit value={countdown?.days} label="Días" />
+            <FlipUnit value={countdown?.hours} label="Horas" />
+            <FlipUnit value={countdown?.minutes} label="Min" />
+            <FlipUnit value={countdown?.seconds} label="Seg" />
           </div>
-        </section>
+        </ClockSection>
       </Reveal>
 
       {/* ================= CEREMONIA Y FIESTA ================= */}
       <Reveal>
-        <section className="mx-auto max-w-4xl px-6 py-24 sm:py-28">
+        <section className="mx-auto max-w-4xl px-6 py-12 text-center sm:py-14">
           <div className="text-center">
             <p className={EYEBROW}>LA CELEBRACIÓN</p>
             <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
@@ -505,7 +538,7 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="mt-14 grid gap-8 sm:mt-16 sm:grid-cols-2 sm:gap-10">
+          <div className="mt-12 grid gap-8 sm:mt-14 sm:grid-cols-2 sm:gap-10">
             <div className="rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center">
               <p className="font-display text-[22px] tracking-widest2 text-principal">
                 Jano's Bella vista 1
@@ -544,7 +577,7 @@ export default function Home() {
 
       {/* ================= CÓDIGO DE VESTIMENTA ================= */}
       <Reveal>
-        <section className="mx-auto max-w-xl px-6 py-24 text-center sm:py-28">
+        <section className="mx-auto max-w-xl px-6 py-12 text-center sm:py-14">
           <p className={EYEBROW}>CÓDIGO DE VESTIMENTA</p>
           <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
             Elegante
@@ -565,7 +598,7 @@ export default function Home() {
 
       {/* ================= GALERÍA ================= */}
       <Reveal>
-        <section className="mx-auto max-w-xl px-6 py-24 text-center sm:py-28">
+        <section className="mx-auto max-w-xl px-6 py-12 text-center sm:py-14">
           <p className={EYEBROW}>GALERÍA</p>
           <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
             Nosotros
@@ -579,7 +612,7 @@ export default function Home() {
 
       {/* ================= REGALOS ================= */}
       <Reveal>
-        <section className="grain relative bg-principal px-6 py-24 text-center sm:py-28">
+        <section className="grain relative bg-principal px-6 py-12 text-center sm:py-14">
           <div className="relative z-[2] mx-auto max-w-xl">
             <p className={EYEBROW}>REGALOS</p>
             <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-blanco sm:text-[56px]">
@@ -593,7 +626,7 @@ export default function Home() {
               ayudarnos a cumplir nuestro sueño de la luna de miel. De
               preferencia en efectivo.
             </p>
-            <button className="mt-8 border border-dorado px-8 py-3 font-display text-[20px] tracking-widest2 text-dorado-claro transition-colors hover:bg-dorado hover:text-principal">
+            <button className="mt-6 border border-dorado px-8 py-3 font-display text-[20px] tracking-widest2 text-dorado-claro transition-colors hover:bg-dorado hover:text-principal">
               VER DATOS BANCARIOS
             </button>
           </div>
@@ -602,7 +635,7 @@ export default function Home() {
 
       {/* ================= RSVP ================= */}
       <Reveal>
-        <section className="mx-auto max-w-lg px-6 py-24 sm:py-28">
+        <section className="mx-auto max-w-lg px-6 py-12 text-center sm:py-14">
           <div className="text-center">
             <p className={EYEBROW}>CONFIRMACIÓN</p>
             <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
@@ -614,7 +647,7 @@ export default function Home() {
           </div>
 
           {enviado ? (
-            <div className="mt-12 rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center">
+            <div className="mt-8 rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center">
               <p className="font-script text-[38px] tracking-[0.02em] text-principal">
                 ¡Gracias, {nombre || "querido invitado"}!
               </p>
@@ -623,7 +656,7 @@ export default function Home() {
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="mt-12 space-y-6">
+            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
               <div>
                 <label
                   htmlFor="nombre"
@@ -708,9 +741,9 @@ export default function Home() {
           className="relative px-6 text-center bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: "url('/images/Biblia.jpeg')",
-            paddingTop: "6rem",
-            paddingBottom: "6rem",
-            minHeight: "70vh",
+            paddingTop: "3rem",
+            paddingBottom: "3rem",
+            minHeight: "60vh",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -718,7 +751,7 @@ export default function Home() {
         >
           {/* Degradé superior: de secundario a transparente */}
           <div
-            className="absolute inset-x-0 top-0 h-32 pointer-events-none"
+            className="absolute inset-x-0 top-0 h-16 pointer-events-none"
             style={{
               background:
                 "linear-gradient(to bottom, #eef3f8 0%, transparent 100%)",
@@ -726,7 +759,7 @@ export default function Home() {
           />
           {/* Degradé inferior: de transparente a principal */}
           <div
-            className="absolute inset-x-0 bottom-0 h-32 pointer-events-none"
+            className="absolute inset-x-0 bottom-0 h-16 pointer-events-none"
             style={{
               background:
                 "linear-gradient(to top, #102948 0%, transparent 100%)",
@@ -743,7 +776,7 @@ export default function Home() {
             <p className="mt-4 font-display text-[18px] tracking-widest2 text-dorado-claro">
               Colosenses 3:14
             </p>
-            <div className="mt-8">
+            <div className="mt-6">
               <Divider tone="dorado" />
             </div>
           </div>
@@ -751,12 +784,12 @@ export default function Home() {
       </Reveal>
 
       {/* ================= FOOTER ================= */}
-      <footer className="grain relative bg-principal px-6 py-20 text-center">
+      <footer className="grain relative bg-principal px-6 py-10 text-center">
         <div className="relative z-[2]">
           <p className="font-script text-[44px] tracking-[0.02em] text-blanco sm:text-[56px]">
             Evelyn <span className="text-dorado">y</span> Juan Manuel
           </p>
-          <div className="mx-auto my-6 w-16">
+          <div className="mx-auto my-4 w-16">
             <Divider />
           </div>
           <p className="font-body text-[22px] tracking-wide text-blanco/60">
