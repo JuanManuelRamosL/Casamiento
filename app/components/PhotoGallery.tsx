@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { GALLERY_IMAGES } from "../utils/constants";
 
@@ -40,36 +41,43 @@ export function PhotoGallery() {
         className="flex transition-transform duration-500 ease-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {GALLERY_IMAGES.map((src, index) => (
-          <div
-            key={index}
-            className="relative min-w-full h-[340px] sm:h-[400px] flex items-center justify-center px-2 py-2"
-          >
+        {GALLERY_IMAGES.map((src, index) => {
+          const isCurrent = index === currentIndex;
+          const isFirst = index === 0;
+
+          return (
             <div
-              className="relative w-[90%] h-[92%] rounded-2xl overflow-hidden shadow-2xl border border-dorado/20"
-              style={{
-                transform: `rotate(${getRotation(index)}deg)`,
-                boxShadow:
-                  index === currentIndex
+              key={index}
+              className="relative min-w-full h-[340px] sm:h-[400px] flex items-center justify-center px-2 py-2"
+            >
+              <div
+                className="relative w-[90%] h-[92%] rounded-2xl overflow-hidden shadow-2xl border border-dorado/20"
+                style={{
+                  transform: `rotate(${getRotation(index)}deg)`,
+                  boxShadow: isCurrent
                     ? "0 20px 60px rgba(0,0,0,0.3)"
                     : "0 10px 30px rgba(0,0,0,0.15)",
-              }}
-            >
-              <img
-                src={src}
-                alt={`Foto ${index + 1}`}
-                className="w-full h-full object-cover"
-                loading={index === 0 ? "eager" : "lazy"}
-                decoding="async"
-              />
-              <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm px-2.5 py-0.5 rounded-full z-10">
-                <span className="text-white text-xs font-display tracking-wider">
-                  {index + 1} / {total}
-                </span>
+                }}
+              >
+                <Image
+                  src={src}
+                  alt={`Foto ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 90vw, (max-width: 768px) 80vw, 50vw"
+                  priority={isFirst || isCurrent}
+                  loading={isFirst || isCurrent ? "eager" : "lazy"}
+                  decoding="async"
+                />
+                <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm px-2.5 py-0.5 rounded-full z-10">
+                  <span className="text-white text-xs font-display tracking-wider">
+                    {index + 1} / {total}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-2 z-10">

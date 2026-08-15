@@ -41,13 +41,16 @@ export default function Home() {
 
       <Vestimenta />
 
+      {/* ================= GALERÍA ================= */}
       <Reveal>
-        <section className="mx-auto max-w-xl px-6 py-6 text-center sm:py-14">
-          <p className="font-display text-[16px] tracking-widest2">GALERÍA</p>
-          <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
+        <section className="mx-auto max-w-xl px-6 py-4 text-center sm:py-6">
+          <p className="font-display text-[12px] tracking-widest2 text-principal/50">
+            GALERÍA
+          </p>
+          <h2 className="mt-1 font-script text-[32px] tracking-[0.02em] text-principal sm:text-[40px]">
             Nosotros
           </h2>
-          <div className="mx-auto my-8 w-10">
+          <div className="mx-auto my-2 w-8">
             <Divider />
           </div>
           <PhotoGallery />
