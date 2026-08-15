@@ -19,7 +19,6 @@ export function Regalos() {
     <Reveal>
       <section className="grain relative bg-principal px-6 py-12 text-center sm:py-14">
         <div className="relative z-[2] mx-auto max-w-xl">
-          <p className={EYEBROW}>REGALOS</p>
           <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-blanco sm:text-[56px]">
             Regalos
           </h2>
