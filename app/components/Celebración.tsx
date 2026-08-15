@@ -24,7 +24,7 @@ export function Celebracion() {
               <Divider />
             </div>
             <p className="font-body text-[28px] text-principal">
-              Corrientes 1682, Provincia de Buenos Aires
+              Corrientes 1682, Bella vista, Provincia de Buenos Aires
             </p>
             <p className="mt-2 font-body text-[24px] text-principal/70">
               16:30 hs
