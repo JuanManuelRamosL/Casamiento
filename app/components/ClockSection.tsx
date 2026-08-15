@@ -17,7 +17,7 @@ export function ClockSection({ children }: { children: React.ReactNode }) {
   return (
     <section
       className="relative px-6 py-16 text-center sm:py-20 overflow-hidden flex items-center justify-center"
-      style={{ minHeight: "50vh", minHeight: "50dvh" }}
+      style={{ minHeight: "50dvh" }}
     >
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
