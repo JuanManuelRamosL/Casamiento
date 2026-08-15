@@ -299,11 +299,37 @@ export default function Home() {
   const [nombre, setNombre] = useState("");
   const [restricciones, setRestricciones] = useState("");
   const [enviado, setEnviado] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState(false);
   const [copied, setCopied] = useState<"cbu" | "alias" | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setEnviado(true);
+    setEnviando(true);
+    setError(false);
+
+    try {
+      const response = await fetch(
+        "https://back-casamiento.vercel.app/api/rsvp",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre,
+            confirma: asistencia === "si",
+            alimentacion: restricciones,
+          }),
+        },
+      );
+
+      if (!response.ok) throw new Error("Error al enviar la confirmación");
+
+      setEnviado(true);
+    } catch {
+      setError(true);
+    } finally {
+      setEnviando(false);
+    }
   }
 
   const copyToClipboard = (text: string, type: "cbu" | "alias") => {
@@ -544,7 +570,10 @@ export default function Home() {
 
           {enviado ? (
             <div className="mt-8 rounded-sm border border-dorado/30 bg-blanco/60 px-8 py-10 text-center">
-              <p className="font-script text-[38px] tracking-[0.02em] text-principal">
+              <p className="font-display text-[18px] tracking-widest2 text-dorado">
+                ✓ REGISTRADO
+              </p>
+              <p className="mt-4 font-script text-[38px] tracking-[0.02em] text-principal">
                 ¡Gracias, {nombre || "querido invitado"}!
               </p>
               <p className="mt-3 font-body text-[24px] text-principal/70">
@@ -619,12 +648,18 @@ export default function Home() {
                 </div>
               )}
 
+              {error && (
+                <p className="font-body text-[20px] text-red-600">
+                  Hubo un error al enviar tu confirmación. Probá de nuevo.
+                </p>
+              )}
+
               <button
                 type="submit"
-                disabled={!asistencia}
+                disabled={!asistencia || enviando}
                 className="w-full bg-principal py-4 font-display text-[20px] tracking-widest2 text-blanco transition-colors hover:bg-principal2 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
               >
-                CONFIRMAR
+                {enviando ? "ENVIANDO..." : "CONFIRMAR"}
               </button>
             </form>
           )}
