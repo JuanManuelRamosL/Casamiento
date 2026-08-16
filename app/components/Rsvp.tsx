@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Reveal } from "./Reveal";
 import { EYEBROW } from "../utils/constants";
+import { Divider } from "./Divider";
 
 export function Rsvp() {
   const [asistencia, setAsistencia] = useState<"si" | "no" | "">("");
@@ -49,8 +50,19 @@ export function Rsvp() {
           <h2 className="mt-3 font-script text-[44px] tracking-[0.02em] text-principal sm:text-[56px]">
             Confirmá tu asistencia
           </h2>
+          <p className="font-body text-[24px] text-principal/70">
+            Los niños son parte hermosa de nuestras vidas, pero en este día tan
+            especial hemos decidido que la celebración sea{" "}
+            <b>solo para adultos</b>.
+            <b> Gracias por respetar nuestra decisión</b>.
+          </p>
+          <br />
+          <Divider></Divider>
+          <br />
           <p className="mt-4 font-body text-[24px] text-principal/70">
-            Por favor confirmá antes del 20º de septiembre de 2026.
+            Por favor, confirmá tu asistencia{" "}
+            <b>antes del 20 de septiembre de 2026</b>. Esta <b>invitación</b> es
+            individual por motivos de organización.
           </p>
         </div>
 
@@ -67,7 +79,7 @@ export function Rsvp() {
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <form onSubmit={handleSubmit} className="mt-12 space-y-5">
             <div>
               <label
                 htmlFor="nombre"
@@ -93,7 +105,7 @@ export function Rsvp() {
                 <button
                   type="button"
                   onClick={() => setAsistencia("si")}
-                  className={`flex-1 border px-4 py-3 font-body text-[24px] transition-colors ${
+                  className={`flex-1 border px-4 py-3 font-body text-[24px] transition-colors hover:cursor-pointer hover:bg-dorado hover:border-dorado ${
                     asistencia === "si"
                       ? "border-dorado bg-dorado text-principal"
                       : "border-principal/30 text-principal/80"
@@ -104,7 +116,7 @@ export function Rsvp() {
                 <button
                   type="button"
                   onClick={() => setAsistencia("no")}
-                  className={`flex-1 border px-4 py-3 font-body text-[24px] transition-colors ${
+                  className={`flex-1 border px-4 py-3 font-body text-[24px] transition-colors hover:cursor-pointer hover:bg-dorado hover:border-dorado ${
                     asistencia === "no"
                       ? "border-dorado bg-dorado text-principal"
                       : "border-principal/30 text-principal/80"
@@ -116,7 +128,7 @@ export function Rsvp() {
             </fieldset>
 
             {asistencia === "si" && (
-              <div>
+              <div className="mt-12">
                 <label
                   htmlFor="restricciones"
                   className="font-display text-[20px] tracking-widest text-principal/70"
@@ -129,7 +141,7 @@ export function Rsvp() {
                   placeholder="Vegetariano, celíaco, alergias, etc. (opcional)"
                   value={restricciones}
                   onChange={(e) => setRestricciones(e.target.value)}
-                  className="mt-2 w-full border-b border-principal/30 bg-transparent py-2 font-body text-[26px] text-principal outline-none placeholder:text-principal/40 focus-visible:border-dorado"
+                  className="mt-2 w-full border-b border-principal/30 bg-transparent py-2 font-body text-[26px] text-principal outline-none placeholder:text-principal/40"
                 />
               </div>
             )}
