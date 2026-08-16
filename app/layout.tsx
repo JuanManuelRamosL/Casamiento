@@ -25,6 +25,10 @@ export const metadata: Metadata = {
   title: "Evelyn & Juan Manuel | 15 de noviembre, 2026",
   description:
     "Nos casamos y queremos que seas parte de este día. Acompañanos a celebrar nuestro casamiento.",
+  icons: {
+    icon: "/Logo.png",
+    apple: "/Logo.png",
+  },
 };
 
 export default function RootLayout({
