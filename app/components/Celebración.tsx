@@ -27,7 +27,7 @@ export function Celebracion() {
               Corrientes 1682, Bella Vista, Prov. de Bs.As
             </p>
             <p className="mt-2 font-body text-[24px] text-principal/70">
-              16:30 hs
+              Comenzamos 16:30 hs
             </p>
           </div>
         </div>
