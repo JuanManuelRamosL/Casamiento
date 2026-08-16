@@ -27,7 +27,7 @@ export function Regalos() {
           </div>
           <p className="mx-auto max-w-md font-body text-[26px] leading-relaxed text-blanco/80">
             Si desean obsequiarnos algo, agradeceremos mucho una contribución en
-            efectivo para ayudarnos a comenzar esta nueva etapa juntos. Habrá
+            efectivo y/o transferencia para ayudarnos a comenzar esta nueva etapa juntos. Habrá
             sobres a disposición en la entrada del evento. ¡Gracias por ser
             parte de nuestro futuro!
           </p>

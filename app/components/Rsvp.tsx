@@ -53,7 +53,7 @@ export function Rsvp() {
           <p className="font-body text-[24px] text-principal/70">
             Los niños son parte hermosa de nuestras vidas, pero en este día tan
             especial hemos decidido que la celebración sea{" "}
-            <b>solo para adultos</b>.
+            <b>sólo para adultos</b>.
             <b> Gracias por respetar nuestra decisión</b>.
           </p>
           <br />

@@ -47,6 +47,22 @@ export function Hero() {
           </p>
         </div>
       </div>
+
+      <svg
+        className="fade-in-up absolute bottom-6 left-1/2 z-[2] h-6 w-6 -translate-x-1/2 text-dorado sm:h-7 sm:w-7"
+        style={{ animationDelay: "4.2s" }}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M6 9l6 6 6-6"
+        />
+      </svg>
     </section>
   );
 }

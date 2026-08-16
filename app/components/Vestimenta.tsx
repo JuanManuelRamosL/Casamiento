@@ -14,7 +14,7 @@ export function Vestimenta() {
           <Divider />
         </div>
         <p className="mx-auto max-w-md font-body text-[26px] leading-relaxed text-principal/80">
-          Queremos que nos acompañen en esta noche tan especial luciendo sus
+          Queremos que nos acompañen en este momento tan especial luciendo sus
           mejores vestidos de gala y trajes elegantes.
           <br />
           <br />
