@@ -15,11 +15,10 @@ export function Vestimenta() {
         </div>
         <p className="mx-auto max-w-md font-body text-[26px] leading-relaxed text-principal/80">
           Queremos que nos acompañen en este momento tan especial luciendo sus
-          mejores vestidos de gala y trajes elegantes.
+          trajes y vestidos de gala.
           <br />
           <br />
-          Evitando la gama de azules y celestes que estarán reservados para la
-          pareja. 💙
+          Les pedimos  que sean tan amables de evitar la gama de azules , celestes y por supuesto vestidos en color blanco , ya que es el color que corresponde a la novia.
         </p>
       </section>
     </Reveal>

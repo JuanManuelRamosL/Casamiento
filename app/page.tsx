@@ -12,6 +12,7 @@ import { Vestimenta } from "./components/Vestimenta";
 import { Regalos } from "./components/Regalos";
 import { Rsvp } from "./components/Rsvp";
 import { Versiculo } from "./components/Versiculo";
+import { Ubicacion } from "./components/Ubicacion";
 import { Footer } from "./components/Footer";
 import { Reveal } from "./components/Reveal";
 import { Divider } from "./components/Divider";
@@ -66,9 +67,12 @@ export default function Home() {
 
       {/* Rsvp - YA TIENE Reveal dentro */}
       <Rsvp />
-
+ <Ubicacion />
       {/* Versiculo - YA TIENE Reveal dentro */}
       <Versiculo />
+
+      {/* Ubicacion - YA TIENE Reveal dentro */}
+     
 
       <Footer />
     </main>

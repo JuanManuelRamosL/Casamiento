@@ -12,6 +12,6 @@ export const GALLERY_IMAGES = [
   "/images/17.jpg"
 ];
 
-export const CBU = "0000003100088075383446";
-export const ALIAS = "juanmaramosl.mp";
+export const CBU = "3840200500000028536233";
+export const ALIAS = "juanmayeve";
 export const EYEBROW = "font-display text-[16px] tracking-widest2";
